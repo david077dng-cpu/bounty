@@ -1,12 +1,18 @@
+/* 小红书风格瀑布流布局 */
 .task-grid {
-  display: grid;
-  gap: 10px;
+  column-count: 2;
+  column-gap: 12px;
+}
+
+.task-card {
+  break-inside: avoid;
+  margin-bottom: 12px;
 }
 
 .task-card {
   background: var(--bg2);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 16px 18px;
   cursor: pointer;
   transition: all 0.2s;
