@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int          @id @default(autoincrement())
+  username      String       @unique
+  password      String       // Hashed with bcrypt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  totalScore    Int          @default(0)
+  totalBounty   Int          @default(0)
+  tasksCompleted Int         @default(0)
+  tier          String       @default("见习猎人") // 见习猎人, 高级猎人, 精英猎人, 传奇猎人
+
+  submissions   Submission[]
+  userProgress  UserProgress[]
+  mcpConnections MCPConnection[]
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  icon  String
+  tasks Task[]
+}
+
+model Task {
+  id          String  @id // M001, A001, etc.
+  name        String
+  tier        String // easy, medium, hard
+  bounty      Int     // Point value
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  catIcon     String
+  question    String
+  hint        String?
+  answer      String
+  refAccuracy    Int
+  refReasoning   Int
+  refCreativity  Int
+  refSpeed       Int
+  steps         String // JSON string of Array of [type, text] tuples
+
+  submissions Submission[]
+  lessons     Lesson[]
+}
+
+model Submission {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  lessonId   Int?
+  lesson     Lesson?  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  userAnswer String?
+
+  accuracy    Int
+  reasoning   Int
+  creativity  Int
+  speed       Int
+  totalScore  Int
+  bountyEarned Int
+
+  grade String // S, A, B, C, D
+
+  createdAt DateTime @default(now())
+}
+
+// --- LLM Agent Learning Platform - Course by difficulty tier
+model Course {
+  id          Int      @id @default(autoincrement())
+  name        String   // e.g., "Beginner: MCP Basics", "Intermediate: Tool Reasoning"
+  description String
+  difficulty  String   // "beginner", "intermediate", "advanced"
+  icon        String   // emoji icon
+  order       Int      // display order
+  isActive    Boolean  @default(true)
+
+  lessons Lesson[]
+}
+
+model Lesson {
+  id          Int       @id @default(autoincrement())
+  courseId    Int
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  taskId      String    // reference to the task
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  order       Int       // order within course
+  requiresLessonId Int?  // previous lesson required to unlock this one
+  bounty      Int       // bounty points awarded when completed
+  isMcpTask  Boolean @default(false)  // whether this lesson requires MCP tool usage
+
+  submissions Submission[]
+  userProgress UserProgress[]
+}
+
+model UserProgress {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId  Int
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completed Boolean  @default(true)
+  completedAt DateTime @default(now())
+}
+
+// Store user's MCP server connections
+model MCPConnection {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String   // user-given name for this connection
+  url         String   // MCP server URL
+  apiKey      String?  // optional API key
+  createdAt   DateTime @default(now())
+  lastUsed    DateTime @updatedAt
+}

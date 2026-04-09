@@ -1,0 +1,122 @@
+import axios from 'axios';
+import type {
+  User,
+  Category,
+  TaskListItem,
+  Task,
+  Scores,
+  Submission,
+  LeaderboardEntry,
+  Course,
+  MCPConnection,
+  MCPTool,
+} from '../types';
+
+const API_BASE_URL = 'http://localhost:3001/api';
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+});
+
+// Auth API
+export const authApi = {
+  register: (username: string, password: string) =>
+    api.post<{ success: boolean; user: User; error?: string }>('/auth/register', { username, password }),
+
+  login: (username: string, password: string) =>
+    api.post<{ success: boolean; user: User; error?: string }>('/auth/login', { username, password }),
+
+  logout: () =>
+    api.post<{ success: boolean }>('/auth/logout'),
+
+  me: () =>
+    api.get<{ success: boolean; user: User; error?: string }>('/auth/me'),
+};
+
+// Tasks API
+export const tasksApi = {
+  list: (category?: string) =>
+    api.get<{
+      success: boolean;
+      tasks: TaskListItem[];
+      categories: Category[];
+      error?: string;
+    }>('/tasks', { params: { category } }),
+
+  get: (id: string) =>
+    api.get<{ success: boolean; task: Task; error?: string }>(`/tasks/${id}`),
+};
+
+// Submissions API
+export const submissionsApi = {
+  my: () =>
+    api.get<{ success: boolean; submissions: Submission[]; error?: string }>('/submissions/my'),
+
+  submit: (taskId: string, userAnswer: string | null, scores?: Scores) =>
+    api.post<{
+      success: boolean;
+      submission: {
+        accuracy: number;
+        reasoning: number;
+        creativity: number;
+        speed: number;
+        totalScore: number;
+        bountyEarned: number;
+        grade: string;
+        answer: string;
+      };
+      userStats: {
+        totalScore: number;
+        totalBounty: number;
+        tasksCompleted: number;
+        tier: string;
+      };
+      error?: string;
+    }>('/submissions', { taskId, userAnswer, scores }),
+};
+
+// Leaderboard API
+export const leaderboardApi = {
+  get: (limit?: number) =>
+    api.get<{ success: boolean; leaderboard: LeaderboardEntry[]; error?: string }>('/leaderboard', {
+      params: { limit },
+    }),
+};
+
+// Courses API
+export const coursesApi = {
+  list: () =>
+    api.get<{
+      success: boolean;
+      courses: Course[];
+      difficultyTiers: { key: string; name: string; description: string }[];
+      error?: string;
+    }>('/courses'),
+
+  get: (id: number) =>
+    api.get<{ success: boolean; course: Course; error?: string }>(`/courses/${id}`),
+};
+
+// MCP API
+export const mcpApi = {
+  list: () =>
+    api.get<{ success: boolean; connections: MCPConnection[]; error?: string }>('/mcp'),
+
+  create: (name: string, url: string, apiKey?: string) =>
+    api.post<{ success: boolean; connection: MCPConnection; error?: string }>('/mcp', { name, url, apiKey }),
+
+  test: (id: number) =>
+    api.post<{ success: boolean; tools: MCPTool[]; error?: string; details?: any }>(`/mcp/${id}/test`),
+
+  call: (id: number, toolName: string, args: any) =>
+    api.post<{ success: boolean; result: any; jsonrpcResponse: any; error?: string }>(`/mcp/${id}/call`, {
+      toolName,
+      arguments: args,
+    }),
+
+  delete: (id: number) =>
+    api.delete<{ success: boolean; error?: string }>(`/mcp/${id}`),
+};
+
+export default api;

@@ -1,0 +1,156 @@
+.mcp-page {
+  position: relative;
+  z-index: 1;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-header h2 {
+  margin: 0;
+}
+
+.connections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.connection-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.connection-info {
+  margin-bottom: 12px;
+}
+
+.connection-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.connection-url {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  word-break: break-all;
+  margin-bottom: 6px;
+}
+
+.connection-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
+.has-api-key {
+  color: var(--purple);
+}
+
+.connection-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-danger {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid rgba(255,77,109,0.3);
+  color: var(--red);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background: rgba(255,77,109,0.08);
+}
+
+.testing-indicator {
+  margin-top: 10px;
+  padding: 8px;
+  background: rgba(245,197,66,0.1);
+  border-radius: 6px;
+  color: var(--gold);
+  font-size: 13px;
+}
+
+.tools-list {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--bg3);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.tools-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.tools-list ul {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.tools-list li {
+  margin-bottom: 8px;
+}
+
+.tools-list li strong {
+  color: var(--cyan);
+}
+
+.tools-list li p {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px;
+}
+
+.modal-content h3 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
