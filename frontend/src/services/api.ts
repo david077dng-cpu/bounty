@@ -119,4 +119,36 @@ export const mcpApi = {
     api.delete<{ success: boolean; error?: string }>(`/mcp/${id}`),
 };
 
+// Creation API (user-created tasks)
+export const creationApi = {
+  getCategories: () =>
+    api.get<{ success: boolean; categories: Category[]; error?: string }>('/creation/categories'),
+
+  listMyTasks: () =>
+    api.get<{
+      success: boolean;
+      tasks: Array<{
+        id: string;
+        name: string;
+        tier: string;
+        bounty: number;
+        catIcon: string;
+        category: string;
+        isPublic: boolean;
+        author: string;
+        questionPreview: string;
+      }>;
+      error?: string;
+    }>('/creation/my-tasks'),
+
+  createTask: (data: any) =>
+    api.post<{ success: boolean; task: any; error?: string }>('/creation/task', data),
+
+  updateTask: (id: string, data: any) =>
+    api.put<{ success: boolean; task: any; error?: string }>(`/creation/task/${id}`, data),
+
+  deleteTask: (id: string) =>
+    api.delete<{ success: boolean; error?: string }>(`/creation/task/${id}`),
+};
+
 export default api;

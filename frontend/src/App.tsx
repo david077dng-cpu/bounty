@@ -8,6 +8,8 @@ import Arena from './pages/Arena';
 import Leaderboard from './pages/Leaderboard';
 import History from './pages/History';
 import Courses from './pages/Courses';
+import Dashboard from './pages/Dashboard';
+import CreationCenter from './pages/CreationCenter';
 import MCPConnections from './pages/MCPConnections';
 
 function App() {
@@ -18,6 +20,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/courses" element={<Courses />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/creation" element={<CreationCenter />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/arena/:taskId" element={<Arena />} />

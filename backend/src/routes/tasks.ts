@@ -5,8 +5,9 @@ import { authMiddleware } from '../middleware/auth';
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// List all tasks with optional category filtering
-router.get('/', authMiddleware, async (req, res) => {
+// List all tasks with optional category filtering - public access for guests
+router.get('/', async (req, res) => {
+  const userId = req.userId; // May be undefined for guests
   try {
     const category = req.query.category as string;
     const userId = req.userId!;
@@ -36,12 +37,15 @@ router.get('/', authMiddleware, async (req, res) => {
       },
     });
 
-    // Get all completed tasks for this user
-    const completedSubmissions = await prisma.submission.findMany({
-      where: { userId },
-      select: { taskId: true },
-    });
-    const completedTaskIds = new Set(completedSubmissions.map(s => s.taskId));
+    // Get all completed tasks for this user (if logged in)
+    const completedTaskIds = new Set<string>();
+    if (userId) {
+      const completedSubmissions = await prisma.submission.findMany({
+        where: { userId },
+        select: { taskId: true },
+      });
+      completedSubmissions.forEach(s => completedTaskIds.add(s.taskId));
+    }
 
     const categories = await prisma.category.findMany({
       select: {

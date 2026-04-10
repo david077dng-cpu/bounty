@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { mcpApi } from '../services/api';
 import type { MCPConnection, MCPTool } from '../types';
 import '../styles/MCPConnections.css';
@@ -13,10 +15,23 @@ const MCPConnections: React.FC = () => {
   const [formApiKey, setFormApiKey] = useState('');
   const [testing, setTesting] = useState<number | null>(null);
   const [testResult, setTestResult] = useState<{tools: MCPTool[]; error?: string} | null>(null);
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    loadConnections();
-  }, []);
+    if (user) {
+      loadConnections();
+    }
+  }, [user]);
+
+  if (authLoading) {
+    return <div className="loading">认证中...</div>;
+  }
+
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
 
   const loadConnections = async () => {
     setLoading(true);

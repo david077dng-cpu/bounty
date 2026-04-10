@@ -12,6 +12,26 @@ const Header: React.FC = () => {
     navigate('/');
   };
 
+  // Get first character of username for avatar
+  const getInitial = () => {
+    if (!user || !user.username) return '?';
+    return user.username.charAt(0).toUpperCase();
+  };
+
+  // Generate a consistent color based on username
+  const getAvatarColor = () => {
+    if (!user || !user.username) return '#6366f1';
+    let hash = 0;
+    for (let i = 0; i < user.username.length; i++) {
+      hash = user.username.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const colors = [
+      '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981',
+      '#06b6d4', '#3b82f6', '#ef4444', '#14b8a6', '#f97316'
+    ];
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   return (
     <div className="header">
       <div className="logo">
@@ -29,12 +49,16 @@ const Header: React.FC = () => {
           <>
             {user ? (
               <>
-                <Link to="/mcp-connections" className="nav-link">MCP</Link>
-                <Link to="/history" className="nav-link">我的记录</Link>
-                <div className="user-info">
-                  <span className="user-bounty">🏆 {user.totalBounty}</span>
-                  <span className="user-tier">{user.tier}</span>
-                </div>
+                <span className="user-bounty-navbar">🏆 {user.totalBounty}</span>
+                <Link to="/dashboard" className="avatar-link">
+                  <div
+                    className="user-avatar"
+                    style={{ backgroundColor: getAvatarColor() }}
+                    title="控制面板"
+                  >
+                    {getInitial()}
+                  </div>
+                </Link>
                 <button className="logout-btn" onClick={handleLogout}>退出</button>
               </>
             ) : (

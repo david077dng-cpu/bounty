@@ -22,6 +22,8 @@ model User {
   submissions   Submission[]
   userProgress  UserProgress[]
   mcpConnections MCPConnection[]
+  createdTasks  Task[]
+  createdCourses Course[]
 }
 
 model Category {
@@ -47,6 +49,11 @@ model Task {
   refCreativity  Int
   refSpeed       Int
   steps         String // JSON string of Array of [type, text] tuples
+  authorId    Int?
+  author      User?    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   submissions Submission[]
   lessons     Lesson[]
@@ -84,6 +91,11 @@ model Course {
   icon        String   // emoji icon
   order       Int      // display order
   isActive    Boolean  @default(true)
+  authorId    Int?
+  author      User?    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   lessons Lesson[]
 }

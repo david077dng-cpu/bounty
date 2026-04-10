@@ -13,6 +13,7 @@ import submissionsRoutes from './routes/submissions';
 import leaderboardRoutes from './routes/leaderboard';
 import coursesRoutes from './routes/courses';
 import mcpRoutes from './routes/mcp';
+import creationRoutes from './routes/creation';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -33,6 +34,7 @@ app.use('/api/submissions', submissionsRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/courses', coursesRoutes);
 app.use('/api/mcp', mcpRoutes);
+app.use('/api/creation', creationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -1,0 +1,250 @@
+.dashboard-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+
+.dashboard-section {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+}
+
+.dashboard-section h2 {
+  margin: 0 0 20px 0;
+  font-size: 1.25rem;
+  color: var(--text-primary);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+.btn-add {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-add:hover {
+  background: var(--primary-dark);
+}
+
+/* User Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Quick Links */
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.quick-link-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-secondary);
+  padding: 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s;
+}
+
+.quick-link-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.ql-icon {
+  font-size: 2rem;
+}
+
+.ql-text {
+  flex: 1;
+}
+
+.ql-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.ql-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* MCP Connections */
+.create-form {
+  background: var(--bg-secondary);
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.btn-create {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.btn-create:hover {
+  background: var(--primary-dark);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.connections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.connection-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-secondary);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.connection-info {
+  flex: 1;
+}
+
+.connection-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.connection-url {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  font-family: monospace;
+}
+
+.connection-date {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.connection-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-test, .btn-delete {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-test {
+  background: var(--cyan);
+  color: white;
+}
+
+.btn-test:hover {
+  opacity: 0.9;
+}
+
+.btn-delete {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-delete:hover {
+  opacity: 0.9;
+}
+
+.error-text {
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.1);
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}

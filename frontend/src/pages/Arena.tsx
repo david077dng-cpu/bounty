@@ -355,11 +355,7 @@ const Arena: React.FC = () => {
           </div>
         )}
 
-        {user && mcpConnections.length === 0 && (
-          <div className="mcp-panel mcp-empty">
-            <p>🔌 你还没有添加 MCP 服务器连接，去 <a href="/mcp-connections">MCP 连接</a> 添加一个后就可以在这里调用工具了</p>
-          </div>
-        )}
+        {/* MCP panel only shown when user has connections */}
 
         <div className="answer-area">
           <div className="answer-label">// 你的回答（可以直接填写，或点击「自动执行」观看推理过程）</div>
