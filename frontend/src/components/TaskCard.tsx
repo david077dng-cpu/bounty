@@ -20,7 +20,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         <div className="task-name">
           {task.catIcon} {task.id} · {task.name}
         </div>
-        <div className="bounty">+{task.bounty}pts</div>
+        <div className="bounty">+{task.bounty} EXP</div>
       </div>
       <div className="task-desc">{task.questionPreview}</div>
       <div className="task-meta">
@@ -28,9 +28,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
           {task.tier === 'easy' ? '🥉 简单' : task.tier === 'medium' ? '🥈 挑战' : '🥇 精英'}
         </span>
         <span className="tag cat">{task.category}</span>
-        {task.completed && <span className="tag completed">✅ 已完成</span>}
+        {task.completed && <span className="tag completed">✅ 已掌握</span>}
       </div>
-      <button className="run-btn">{task.completed ? '▶ 再次挑战' : '▶ 进入竞技场'}</button>
+      <button className="run-btn">{task.completed ? '▶ 再次训练' : '▶ 开始训练'}</button>
     </div>
   );
 };

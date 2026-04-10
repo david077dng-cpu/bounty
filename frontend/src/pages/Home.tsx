@@ -56,12 +56,12 @@ const Home: React.FC = () => {
             checked={hideCompleted}
             onChange={(e) => setHideCompleted(e.target.checked)}
           />
-          <span>隐藏已完成</span>
+          <span>隐藏已掌握</span>
         </label>
       </div>
       <div className="task-grid">
         {filteredTasks.length === 0 ? (
-          <div className="empty-state">暂无任务</div>
+          <div className="empty-state">暂无训练挑战</div>
         ) : (
           filteredTasks.map((task) => <TaskCard key={task.id} task={task} />)
         )}

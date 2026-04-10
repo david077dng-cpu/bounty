@@ -140,7 +140,7 @@ const Arena: React.FC = () => {
       await sleep(delay + Math.random() * 200);
       setLog(prev => [...prev, steps[i]]);
       setProgress(Math.round(((i + 1) / steps.length) * 100));
-      const labels = ['分析题目中...', '建立推理框架...', '交叉验证...', '整合结论...'];
+      const labels = ['分析挑战中...', '思考策略...', '技能组合...', '整合方案...'];
       setProgressLabel(labels[Math.min(Math.floor((i / steps.length) * 4), 3)]);
     }
 
@@ -191,7 +191,7 @@ const Arena: React.FC = () => {
     if (!task || !currentScores || !user) {
       // If not logged in, just show result and prompt to login
       if (!user) {
-        alert('请先登录后才能领取赏金！');
+        alert('请先登录后才能获得EXP！');
         navigate('/login');
       }
       return;
@@ -200,7 +200,7 @@ const Arena: React.FC = () => {
     try {
       const res = await submissionsApi.submit(task.id, userAnswer, currentScores);
       if (res.data.success) {
-        alert(`提交成功！获得 ${res.data.submission.bountyEarned} 赏金点！`);
+        alert(`提交成功！获得 ${res.data.submission.bountyEarned} EXP！`);
         navigate('/history');
       } else {
         setError(res.data.error || 'Submit failed');
@@ -245,12 +245,12 @@ const Arena: React.FC = () => {
             }}
           />
           <span id="exec-status">
-            {running ? `推理中: ${task.name}` : showResult ? `✓ 完成: ${task.name}` : `题目已加载，准备作答`}
+            {running ? `训练中: ${task.name}` : showResult ? `✓ 完成: ${task.name}` : `挑战已加载，准备训练`}
           </span>
         </div>
 
         <div className="question-box" id="question-display">
-          <div className="q-label">📋 任务题目</div>
+          <div className="q-label">📋 训练挑战</div>
           <div className="q-text">
             {task.question.split('\n').map((line: string, i: number) => (
               <div key={i}>{line}</div>
@@ -263,7 +263,7 @@ const Arena: React.FC = () => {
         {user && mcpConnections.length > 0 && (
           <div className="mcp-panel">
             <div className="mcp-panel-header">
-              <span>🔌 MCP 工具调用</span>
+              <span>🔌 技能调用</span>
             </div>
             <div className="mcp-row">
               <div className="mcp-field">
@@ -358,11 +358,11 @@ const Arena: React.FC = () => {
         {/* MCP panel only shown when user has connections */}
 
         <div className="answer-area">
-          <div className="answer-label">// 你的回答（可以直接填写，或点击「自动执行」观看推理过程）</div>
+          <div className="answer-label">// 你的训练内容（可以直接填写，或点击「自动训练」观看成长过程）</div>
           <textarea
             className="answer-input"
             id="user-answer"
-            placeholder="在此输入答案或推理过程..."
+            placeholder="在此输入训练内容或思考过程..."
             value={userAnswer}
             onChange={(e) => setUserAnswer(e.target.value)}
             disabled={running}
@@ -377,7 +377,7 @@ const Arena: React.FC = () => {
             disabled={running}
             style={{ flex: 1 }}
           >
-            ▶ 自动执行 · 观看推理
+            ▶ 自动训练 · 观看成长
           </button>
           <button
             className="run-btn"
@@ -385,7 +385,7 @@ const Arena: React.FC = () => {
             disabled={running || !userAnswer.trim()}
             style={{ flex: 1, borderColor: 'rgba(155,114,207,0.5)', color: 'var(--purple)' }}
           >
-            ✎ 提交答案 · 评分
+            ✎ 提交训练 · 评估成长
           </button>
         </div>
 
@@ -427,7 +427,7 @@ const Arena: React.FC = () => {
 
             <div id="verdict-wrap">
               <div className="verdict-box">
-                <div className="verdict-label">// 参考答案</div>
+                <div className="verdict-label">// 参考方案</div>
                 <div className="verdict-text">
                   {task.answer && task.answer.split('\n').map((line: string, i: number) => (
                     <div key={i}>{line}</div>
@@ -437,23 +437,23 @@ const Arena: React.FC = () => {
             </div>
 
             <div className="total-score">
-              <div className="total-label">综合得分</div>
+              <div className="total-label">综合评价</div>
               <div className="total-val" id="total-val">{totalScore}</div>
               <div className="total-sub" id="total-sub">
-                {grade} ·  赏金 +{task.bounty}pts
+                {grade} ·  EXP +{task.bounty}
               </div>
             </div>
 
             {user && (
               <button className="submit-btn" onClick={submitForBounty}>
-                ✓ 提交结果 · 领取赏金
+                ✓ 提交结果 · 获得EXP
               </button>
             )}
 
             {!user && (
               <div style={{ marginTop: 12, padding: 12, background: 'rgba(245,197,66,0.1)', borderRadius: 8, border: '1px solid rgba(245,197,66,0.3)' }}>
                 <p style={{ color: 'var(--gold)', margin: 0, fontSize: 14 }}>
-                  请先登录后才能领取赏金并保存记录
+                  请先登录后才能获得EXP并保存记录
                 </p>
               </div>
             )}

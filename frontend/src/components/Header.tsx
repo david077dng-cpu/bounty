@@ -35,31 +35,31 @@ const Header: React.FC = () => {
   return (
     <div className="header">
       <div className="logo">
-        <div className="logo-icon">🎯</div>
+        <div className="logo-icon">🥚</div>
         <div>
-          <div className="logo-text">SKILL BOUNTY</div>
-          <div className="logo-sub">Hunter Arena v0.2 · Life Edition</div>
+          <div className="logo-text">DIGIMON HUB</div>
+          <div className="logo-sub">进化训练场 v0.2 · 一起成长</div>
         </div>
       </div>
       <div className="nav">
-        <Link to="/" className="nav-link">任务</Link>
-        <Link to="/courses" className="nav-link">课程</Link>
-        <Link to="/leaderboard" className="nav-link">排行榜</Link>
+        <Link to="/" className="nav-link">训练场</Link>
+        <Link to="/courses" className="nav-link">进化路线</Link>
+        <Link to="/leaderboard" className="nav-link">排名榜</Link>
         {!loading && (
           <>
             {user ? (
               <>
-                <span className="user-bounty-navbar">🏆 {user.totalBounty}</span>
+                <span className="user-bounty-navbar">🌟 {user.totalBounty} EXP</span>
                 <Link to="/dashboard" className="avatar-link">
                   <div
                     className="user-avatar"
                     style={{ backgroundColor: getAvatarColor() }}
-                    title="控制面板"
+                    title="数码档案"
                   >
                     {getInitial()}
                   </div>
                 </Link>
-                <button className="logout-btn" onClick={handleLogout}>退出</button>
+                <button className="logout-btn" onClick={handleLogout}>登出</button>
               </>
             ) : (
               <>

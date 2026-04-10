@@ -17,7 +17,7 @@ model User {
   totalScore    Int          @default(0)
   totalBounty   Int          @default(0)
   tasksCompleted Int         @default(0)
-  tier          String       @default("见习猎人") // 见习猎人, 高级猎人, 精英猎人, 传奇猎人
+  tier          String       @default("幼年期") // 幼年期, 成长期, 成熟期, 究极体
 
   submissions   Submission[]
   userProgress  UserProgress[]

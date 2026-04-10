@@ -98,7 +98,7 @@ const MCPConnections: React.FC = () => {
   return (
     <div className="mcp-page">
       <div className="page-header">
-        <h2>🔌 MCP 服务器连接</h2>
+        <h2>🔌 技能连接</h2>
         <button className="btn btn-primary" onClick={() => setShowModal(true)}>
           + 添加连接
         </button>
@@ -108,8 +108,8 @@ const MCPConnections: React.FC = () => {
 
       {connections.length === 0 ? (
         <div className="empty-state">
-          // 暂无 MCP 连接<br />
-          添加一个 MCP 服务器连接以在任务中调用工具
+          // 暂无技能连接<br />
+          添加一个技能连接以在训练中使用工具
         </div>
       ) : (
         <div className="connections-list">
@@ -165,7 +165,7 @@ const MCPConnections: React.FC = () => {
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h3>添加 MCP 连接</h3>
+            <h3>添加技能连接</h3>
             <form onSubmit={handleCreate}>
               <div className="form-group">
                 <label>连接名称</label>

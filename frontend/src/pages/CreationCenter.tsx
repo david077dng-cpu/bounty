@@ -173,21 +173,21 @@ const CreationCenter: React.FC = () => {
 
   return (
     <div className="creation-center">
-      <h1>创作中心</h1>
-      <p className="page-desc">创建你自己的任务，分享给其他猎人挑战</p>
+      <h1>挑战工坊</h1>
+      <p className="page-desc">创建训练挑战，分享给其他训练师</p>
 
       <div className="tabs">
         <button
           className={`tab ${activeTab === 'list' ? 'active' : ''}`}
           onClick={() => setActiveTab('list')}
         >
-          我的任务 ({tasks.length})
+          我的挑战 ({tasks.length})
         </button>
         <button
           className={`tab ${activeTab === 'create' ? 'active' : ''}`}
           onClick={() => setActiveTab('create')}
         >
-          + 创建新任务
+          + 创建新挑战
         </button>
       </div>
 
@@ -197,7 +197,7 @@ const CreationCenter: React.FC = () => {
         <div className="tasks-list">
           {tasks.length === 0 ? (
             <div className="empty-state">
-              <p>你还没有创建任何任务，点击"创建新任务"开始吧！</p>
+              <p>你还没有创建任何挑战，点击"创建新挑战"开始吧！</p>
             </div>
           ) : (
             tasks.map(task => (
@@ -207,8 +207,8 @@ const CreationCenter: React.FC = () => {
                     <span className="task-icon">{task.catIcon}</span>
                     <h3>{task.name}</h3>
                     <span className={`tier-badge tier-${task.tier}`}>{task.tier}</span>
-                    <span className="bounty-badge">{task.bounty} 赏金</span>
-                    {!task.isPublic && <span className="private-badge">私有</span>}
+                    <span className="bounty-badge">{task.bounty} EXP</span>
+                    {!task.isPublic && <span className="private-badge">私密</span>}
                   </div>
                   <p className="task-preview">{task.questionPreview}</p>
                   <div className="task-meta">分类: {task.category}</div>
@@ -227,7 +227,7 @@ const CreationCenter: React.FC = () => {
         <form className="creation-form" onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">
-              <label>任务 ID *</label>
+              <label>挑战 ID *</label>
               <input
                 type="text"
                 name="id"
@@ -239,13 +239,13 @@ const CreationCenter: React.FC = () => {
               <small>唯一ID，字母数字，如 U001, C001 等</small>
             </div>
             <div className="form-group">
-              <label>任务名称 *</label>
+              <label>挑战名称 *</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                placeholder="e.g. 我的逻辑题目"
+                placeholder="e.g. 我的逻辑训练"
                 required
               />
             </div>
@@ -261,7 +261,7 @@ const CreationCenter: React.FC = () => {
               </select>
             </div>
             <div className="form-group">
-              <label>赏金</label>
+              <label>EXP</label>
               <input
                 type="number"
                 name="bounty"
@@ -297,12 +297,12 @@ const CreationCenter: React.FC = () => {
           </div>
 
           <div className="form-group">
-            <label>题目描述 *</label>
+            <label>挑战描述 *</label>
             <textarea
               name="question"
               value={formData.question}
               onChange={handleInputChange}
-              placeholder="输入题目描述..."
+              placeholder="输入挑战描述..."
               rows={6}
               required
             />
@@ -320,7 +320,7 @@ const CreationCenter: React.FC = () => {
           </div>
 
           <div className="form-group">
-            <label>参考答案 *</label>
+            <label>参考方案 *</label>
             <textarea
               name="answer"
               value={formData.answer}
@@ -405,7 +405,7 @@ ok:结论..."
           </div>
 
           <div className="form-actions">
-            <button type="submit" className="btn-submit">创建任务</button>
+            <button type="submit" className="btn-submit">创建挑战</button>
           </div>
         </form>
       )}

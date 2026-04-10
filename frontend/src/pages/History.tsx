@@ -44,12 +44,12 @@ const History: React.FC = () => {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 16 }}>📝 我的记录</h2>
+      <h2 style={{ marginBottom: 16 }}>📝 训练记录</h2>
       <div>
         {submissions.length === 0 ? (
           <div className="empty-state">
-            // 暂无记录<br />
-            完成任务后结果显示在这里
+            // 暂无训练记录<br />
+            完成训练后结果显示在这里
           </div>
         ) : (
           submissions.map((sub) => (
@@ -60,7 +60,7 @@ const History: React.FC = () => {
                 <div className="history-meta">
                   {sub.task.tier === 'easy' ? '🥉 简单' : sub.task.tier === 'medium' ? '🥈 挑战' : '🥇 精英'} ·
                   准确:{sub.accuracy} 推理:{sub.reasoning} 创意:{sub.creativity} 效率:{sub.speed} ·
-                  +{sub.bountyEarned}pts
+                  +{sub.bountyEarned} EXP
                 </div>
               </div>
               <div className={`history-score score-${sub.grade.toLowerCase()}`}>

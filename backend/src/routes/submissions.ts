@@ -128,12 +128,12 @@ router.post('/', authMiddleware, async (req, res) => {
     const newTotalBounty = user.totalBounty + bountyEarned;
     const newTasksCompleted = user.tasksCompleted + 1;
 
-    // Update tier based on score
+    // Update tier based on score (evolution stage)
     let newTier = user.tier;
-    if (newTotalScore > 12000) newTier = '传奇猎人';
-    else if (newTotalScore > 8000) newTier = '精英猎人';
-    else if (newTotalScore > 2000) newTier = '高级猎人';
-    else newTier = '见习猎人';
+    if (newTotalScore > 12000) newTier = '究极体';
+    else if (newTotalScore > 8000) newTier = '成熟期';
+    else if (newTotalScore > 2000) newTier = '成长期';
+    else newTier = '幼年期';
 
     await prisma.user.update({
       where: { id: req.userId! },

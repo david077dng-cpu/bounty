@@ -65,20 +65,20 @@ const Courses: React.FC = () => {
     <div className="courses-page">
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h2>📚 LLM Agent 技能学习路线</h2>
+          <h2>📚 数码兽进化路线</h2>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px' }}>
             <input
               type="checkbox"
               checked={hideCompleted}
               onChange={e => setHideCompleted(e.target.checked)}
             />
-            隐藏已完成
+            隐藏已掌握
           </label>
         </div>
         <div style={{ marginBottom: 16 }}>
           <input
             type="text"
-            placeholder="🔍 搜索课程或lesson..."
+            placeholder="🔍 搜索进化课程..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{
@@ -183,7 +183,7 @@ const Courses: React.FC = () => {
                         </span>
                         <span className="lesson-title">{lesson.title}</span>
                         {lesson.isMcpTask && <span className="mcp-badge">MCP</span>}
-                        <span className="lesson-bounty">+{lesson.bounty}</span>
+                        <span className="lesson-bounty">+{lesson.bounty} EXP</span>
                       </Link>
                     ))}
                   </div>
