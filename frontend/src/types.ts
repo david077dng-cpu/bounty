@@ -133,3 +133,18 @@ export interface MCPToolCallResult {
   result?: any;
   error?: string;
 }
+
+// --- Slash Command Skill System Types ---
+export interface SlashCommand {
+  id: string;           // Unique command identifier
+  name: string;         // Display name in dropdown (without /)
+  description: string;  // Short description shown in dropdown
+  category: 'navigation' | 'template' | 'mcp' | 'action' | 'digimon';
+  icon?: string;        // Emoji or icon for display
+  template?: string;    // Text template to insert (for template commands)
+  action?: () => void;  // Action to execute (for navigation/action commands)
+  mcpCommand?: {        // For MCP tool commands
+    connectionId: number;
+    toolName: string;
+  };
+}

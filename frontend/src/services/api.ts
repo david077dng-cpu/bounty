@@ -151,4 +151,23 @@ export const creationApi = {
     api.delete<{ success: boolean; error?: string }>(`/creation/task/${id}`),
 };
 
+// ARK Volc Engine LLM API
+export const arkApi = {
+  status: () =>
+    api.get<{ success: boolean; configured: boolean; modelId: string; endpoint: string; error?: string }>('/ark/status'),
+
+  streamCompletion: (messages: Array<{ role: string; content: string }>, modelId?: string) => {
+    // Returns an EventSource for streaming
+    const url = `${API_BASE_URL}/ark/completion`;
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ messages, modelId }),
+    });
+  },
+};
+
 export default api;

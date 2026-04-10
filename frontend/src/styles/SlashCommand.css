@@ -1,0 +1,149 @@
+/* Slash Command Popup - matches the dark theme design system */
+.slash-command-popup {
+  position: absolute;
+  z-index: 1000;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  min-width: 320px;
+  max-width: 420px;
+  max-height: 380px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.slash-command-popup-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+
+.slash-command-popup-header span {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.slash-command-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 6px 0;
+}
+
+.slash-command-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.slash-command-list::-webkit-scrollbar-track {
+  background: var(--bg2);
+}
+
+.slash-command-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.slash-command-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.slash-command-item:hover,
+.slash-command-item.selected {
+  background: rgba(0, 212, 170, 0.1);
+}
+
+.slash-command-item.selected {
+  border-left: 3px solid var(--cyan);
+}
+
+.slash-command-icon {
+  font-size: 16px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.slash-command-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.slash-command-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.slash-command-name {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.slash-command-category {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(122, 127, 142, 0.2);
+  color: var(--muted);
+  text-transform: lowercase;
+}
+
+.slash-command-description {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Category-specific category badge colors */
+.slash-command-category.navigation {
+  background: rgba(74, 158, 255, 0.15);
+  color: #4a9eff;
+}
+
+.slash-command-category.template {
+  background: rgba(155, 114, 207, 0.15);
+  color: #9b72cf;
+}
+
+.slash-command-category.action {
+  background: rgba(245, 197, 66, 0.15);
+  color: #f5c542;
+}
+
+.slash-command-category.mcp {
+  background: rgba(0, 212, 170, 0.15);
+  color: var(--cyan);
+}
+
+.slash-command-category.digimon {
+  background: rgba(255, 102, 0, 0.15);
+  color: #ff6600;
+}
+
+/* Position adjustments when near the bottom of the viewport */
+.slash-command-popup.bottom-aligned {
+  transform: translateY(-100%);
+}
+
+/* Empty state */
+.slash-command-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}

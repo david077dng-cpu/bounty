@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { tasksApi, submissionsApi, mcpApi } from '../services/api';
-import type { Task, Scores, MCPConnection, MCPTool } from '../types';
+import { tasksApi, submissionsApi, mcpApi, arkApi } from '../services/api';
+import type { Task, Scores, MCPConnection, MCPTool, SlashCommand } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import SlashCommandPopup from '../components/SlashCommandPopup';
+import { slashCommandRegistry } from '../utils/slashCommandRegistry';
 import '../styles/Arena.css';
 
 const Arena: React.FC = () => {
@@ -28,6 +30,18 @@ const Arena: React.FC = () => {
   const [mcpCallError, setMcpCallError] = useState<string | null>(null);
   const [selectedTool, setSelectedTool] = useState<string>('');
   const [toolArguments, setToolArguments] = useState<string>('{}');
+  // ARK LLM agent state
+  const [arkConfigured, setArkConfigured] = useState(false);
+  const [arkStreaming, setArkStreaming] = useState(false);
+  // Slash Command state
+  const [showSlashCommand, setShowSlashCommand] = useState(false);
+  const [slashQuery, setSlashQuery] = useState('');
+  const [slashCursorStart, setSlashCursorStart] = useState(0);
+  const [selectedSlashIndex, setSelectedSlashIndex] = useState(0);
+  const [filteredCommands, setFilteredCommands] = useState<SlashCommand[]>([]);
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  const answerAreaRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -43,6 +57,38 @@ const Arena: React.FC = () => {
       const res = await mcpApi.list();
       if (res.data.success) {
         setMcpConnections(res.data.connections);
+
+        // Register all MCP tools as slash commands
+        slashCommandRegistry.clearMcpCommands();
+        for (const conn of res.data.connections) {
+          // We need to load tools for each connection to register them
+          try {
+            const toolsRes = await mcpApi.test(conn.id);
+            if (toolsRes.data.success && toolsRes.data.tools) {
+              for (const tool of toolsRes.data.tools) {
+                const safeName = `${conn.name.toLowerCase().replace(/\s+/g, '-')}-${tool.name.toLowerCase().replace(/\s+/g, '-')}`;
+                slashCommandRegistry.registerCommand({
+                  id: `mcp-${conn.id}-${tool.name}`,
+                  name: safeName,
+                  description: `MCP: ${tool.description || `${conn.name} → ${tool.name}`}`,
+                  category: 'mcp',
+                  icon: '🔌',
+                  mcpCommand: {
+                    connectionId: conn.id,
+                    toolName: tool.name,
+                  },
+                });
+              }
+            }
+          } catch (e) {
+            // Skip if we can't load tools for this connection
+          }
+        }
+
+        // Update filtered commands if popup is open
+        if (showSlashCommand) {
+          setFilteredCommands(slashCommandRegistry.filterCommands(slashQuery));
+        }
       }
     } catch (error) {
       console.error('Failed to load MCP connections:', error);
@@ -98,6 +144,122 @@ const Arena: React.FC = () => {
     if (!mcpCallResult) return;
     const resultText = `\n\n---\nMCP tool call result:\n\`\`\`json\n${JSON.stringify(mcpCallResult, null, 2)}\n\`\`\``;
     setUserAnswer(prev => prev + resultText);
+  };
+
+  // Check ARK configuration on mount
+  useEffect(() => {
+    if (user) {
+      checkArkStatus();
+    }
+  }, [user]);
+
+  const checkArkStatus = async () => {
+    try {
+      const res = await arkApi.status();
+      if (res.data.success) {
+        setArkConfigured(res.data.configured);
+      }
+    } catch (error) {
+      console.error('Failed to check ARK status:', error);
+      setArkConfigured(false);
+    }
+  };
+
+  const runArkAgent = async () => {
+    if (!task || running || arkStreaming) return;
+
+    setRunning(true);
+    setArkStreaming(true);
+    setLog([]);
+    setShowResult(false);
+    setProgress(0);
+    setUserAnswer('');
+
+    // Add log entry for starting
+    addLog('info', `🚀 开始使用火山引擎 ARK LLM agent 解决任务...`);
+    addLog('think', `正在分析问题: ${task.name}`);
+
+    try {
+      // Build messages for ARK
+      const messages = [
+        {
+          role: 'system',
+          content: '你是一个专业的AI助手，正在帮助用户解决编程和AI技术问题。请给出清晰、准确的解答，可以使用Markdown格式。',
+        },
+        {
+          role: 'user',
+          content: `任务: ${task.name}\n\n问题描述:\n${task.question}\n\n请给出完整的解答。`,
+        },
+      ];
+
+      const response = await arkApi.streamCompletion(messages);
+
+      if (!response.ok) {
+        throw new Error(`ARK API error: ${response.statusText}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Failed to get response stream');
+      }
+
+      const decoder = new TextDecoder();
+      let fullContent = '';
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              const delta = parsed.choices?.[0]?.delta?.content || '';
+              if (delta) {
+                fullContent += delta;
+                setUserAnswer(fullContent);
+
+                // Update progress log every ~200 characters
+                if (fullContent.length % 200 === 0) {
+                  addLog('step', `正在生成解答... ${fullContent.length} 字符`);
+                  setProgress(Math.min(95, Math.round((fullContent.length / 500) * 100)));
+                }
+              }
+            } catch (e) {
+              // Skip parsing errors
+            }
+          }
+        }
+      }
+
+      addLog('ok', `✅ ARK agent 完成解答，共 ${fullContent.length} 字符`);
+      setProgress(100);
+      setProgressLabel('完成');
+      setArkStreaming(false);
+      setRunning(false);
+
+      // Auto-evaluate after ARK completes
+      setTimeout(() => {
+        submitManual();
+      }, 500);
+
+    } catch (error: any) {
+      addLog('err', `ARK agent 错误: ${error.message}`);
+      setArkStreaming(false);
+      setRunning(false);
+    }
+  };
+
+  const addLog = (type: string, text: string) => {
+    setLog(prev => [...prev, [type, text]]);
   };
 
   useEffect(() => {
@@ -172,6 +334,205 @@ const Arena: React.FC = () => {
     setGrade(g);
     setShowResult(true);
   };
+
+  // --- Slash Command Handling ---
+  const closeSlashCommand = () => {
+    setShowSlashCommand(false);
+    setSelectedSlashIndex(0);
+  };
+
+  const updateFilteredCommands = useCallback((query: string) => {
+    const filtered = slashCommandRegistry.filterCommands(query);
+    setFilteredCommands(filtered);
+    setSelectedSlashIndex(0);
+  }, []);
+
+  const getCaretCoordinates = (element: HTMLTextAreaElement) => {
+    // Calculate popup position based on caret position
+    const text = element.value.substring(0, element.selectionStart);
+    const lines = text.split('\n');
+    const lineHeight = parseInt(getComputedStyle(element).lineHeight || '20', 10);
+    const x = (lines[lines.length - 1].length * 8); // approximate character width
+    const y = lines.length * lineHeight;
+
+    // Convert to relative coordinates inside answer-area
+    return { x, y: y + 20 }; // 20px offset below caret
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!showSlashCommand) {
+      // Check if user just typed '/'
+      if (e.key === '/') {
+        const textarea = e.currentTarget;
+        const cursorPos = textarea.selectionStart;
+
+        // Only trigger if / is at the beginning or after whitespace
+        const beforeCursor = textarea.value.substring(0, cursorPos);
+        if (beforeCursor.length === 0 || beforeCursor.endsWith(' ') || beforeCursor.endsWith('\n')) {
+          e.preventDefault();
+          // Insert the '/'
+          const newValue = textarea.value.substring(0, cursorPos) + '/' + textarea.value.substring(cursorPos);
+          setUserAnswer(newValue);
+
+          setSlashCursorStart(cursorPos);
+          setSlashQuery('');
+          updateFilteredCommands('');
+          setPopupPosition(getCaretCoordinates(textarea));
+          setShowSlashCommand(true);
+          setSelectedSlashIndex(0);
+          return;
+        }
+      }
+      return;
+    }
+
+    // Handle keyboard navigation when popup is open
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSlashIndex(prev => (prev + 1) % filteredCommands.length);
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSlashIndex(prev => prev === 0 ? filteredCommands.length - 1 : prev - 1);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (filteredCommands.length > 0) {
+          executeSlashCommand(filteredCommands[selectedSlashIndex]);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        closeSlashCommand();
+        break;
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    const cursorPos = e.target.selectionStart;
+    setUserAnswer(newValue);
+
+    // If popup is open, update the query
+    if (showSlashCommand) {
+      const query = newValue.substring(slashCursorStart + 1, cursorPos);
+      setSlashQuery(query);
+      updateFilteredCommands(query);
+
+      // Update position
+      if (textareaRef.current) {
+        setPopupPosition(getCaretCoordinates(textareaRef.current));
+      }
+    }
+  };
+
+  const executeSlashCommand = (command: SlashCommand) => {
+    if (!textareaRef.current) {
+      closeSlashCommand();
+      return;
+    }
+
+    // Handle by command type
+    if (command.category === 'navigation') {
+      // Navigation commands
+      const routes: Record<string, string> = {
+        home: '/',
+        courses: '/courses',
+        leaderboard: '/leaderboard',
+        mcp: '/mcp',
+        history: '/history',
+      };
+      const route = routes[command.id];
+      if (route) {
+        navigate(route);
+      }
+      closeSlashCommand();
+      return;
+    }
+
+    if (command.mcpCommand) {
+      // MCP tool command - select in MCP panel
+      setSelectedMcpId(command.mcpCommand.connectionId);
+      setSelectedTool(command.mcpCommand.toolName);
+      setMcpTools([]);
+      // Load tools for this connection
+      mcpApi.test(command.mcpCommand.connectionId).then(res => {
+        if (res.data.success) {
+          setMcpTools(res.data.tools);
+        }
+      });
+      closeSlashCommand();
+      textareaRef.current.focus();
+      return;
+    }
+
+    if (command.category === 'action') {
+      // Action commands
+      switch (command.id) {
+        case 'clear':
+          setUserAnswer('');
+          break;
+        case 'submit':
+          submitManual();
+          break;
+        case 'help':
+          const helpText = `
+// 可用的斜杠命令:
+// 导航: /home /courses /leaderboard /mcp /history
+// 模板: /thinking /system-prompt /agent /cot
+// 动作: /clear /submit /help
+// 数码宝贝: /evolve
+// MCP 工具会自动列出您保存的所有可用工具
+`;
+          insertTemplateAtCursor(helpText);
+          break;
+      }
+      closeSlashCommand();
+      return;
+    }
+
+    // Template commands (including digimon)
+    if (command.template) {
+      insertTemplateAtCursor(command.template);
+      closeSlashCommand();
+      return;
+    }
+
+    closeSlashCommand();
+  };
+
+  const insertTemplateAtCursor = (template: string) => {
+    if (!textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const start = slashCursorStart;
+    const end = textarea.selectionStart;
+
+    // Replace everything from / to current cursor with the template
+    const newValue =
+      userAnswer.substring(0, start) +
+      template +
+      userAnswer.substring(end);
+
+    setUserAnswer(newValue);
+
+    // Put cursor after inserted template
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + template.length, start + template.length);
+    }, 0);
+  };
+
+  const handleCommandHighlight = (index: number) => {
+    setSelectedSlashIndex(index);
+  };
+
+  const handleCommandSelect = (command: SlashCommand) => {
+    executeSlashCommand(command);
+  };
+
+  // --- End Slash Command Handling ---
 
   const submitManual = () => {
     if (!task || !userAnswer.trim()) return;
@@ -357,37 +718,81 @@ const Arena: React.FC = () => {
 
         {/* MCP panel only shown when user has connections */}
 
-        <div className="answer-area">
-          <div className="answer-label">// 你的训练内容（可以直接填写，或点击「自动训练」观看成长过程）</div>
+        <div className="answer-area" ref={answerAreaRef} style={{ position: 'relative' }}>
+          <div className="answer-label">// 你的训练内容（可以直接填写，输入 / 使用命令，或点击「自动训练」观看成长过程）</div>
           <textarea
+            ref={textareaRef}
             className="answer-input"
             id="user-answer"
-            placeholder="在此输入训练内容或思考过程..."
+            placeholder="在此输入训练内容或思考过程，输入 / 打开命令菜单..."
             value={userAnswer}
-            onChange={(e) => setUserAnswer(e.target.value)}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             disabled={running}
+          />
+          <SlashCommandPopup
+            visible={showSlashCommand}
+            commands={filteredCommands}
+            selectedIndex={selectedSlashIndex}
+            onSelect={handleCommandSelect}
+            onHighlight={handleCommandHighlight}
+            onClose={closeSlashCommand}
+            x={popupPosition.x}
+            y={popupPosition.y}
+            containerRef={answerAreaRef}
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
           <button
             className="run-btn"
             id="run-btn"
             onClick={runDemo}
-            disabled={running}
+            disabled={running || arkStreaming}
             style={{ flex: 1 }}
           >
-            ▶ 自动训练 · 观看成长
+            ▶ 演示训练 · 观看示例
           </button>
+          {arkConfigured && (
+            <button
+              className="run-btn"
+              onClick={runArkAgent}
+              disabled={running || arkStreaming}
+              style={{
+                flex: 1,
+                borderColor: 'rgba(255, 102, 0, 0.5)',
+                color: '#ff6600',
+                background: 'rgba(255, 102, 0, 0.08)',
+              }}
+            >
+              ⚡ ARK · 自动推理
+            </button>
+          )}
           <button
             className="run-btn"
             onClick={submitManual}
-            disabled={running || !userAnswer.trim()}
+            disabled={running || arkStreaming || !userAnswer.trim()}
             style={{ flex: 1, borderColor: 'rgba(155,114,207,0.5)', color: 'var(--purple)' }}
           >
-            ✎ 提交训练 · 评估成长
+            ✎ 提交评估
           </button>
         </div>
+
+        {!arkConfigured && user && (
+          <div
+            style={{
+              padding: '12px 16px',
+              background: 'rgba(255, 102, 0, 0.08)',
+              border: '1px solid rgba(255, 102, 0, 0.3)',
+              borderRadius: '10px',
+              marginBottom: '12px',
+              color: '#ff6600',
+              fontSize: '13px',
+            }}
+          >
+            💡 ARK 未配置，请在后端 <code>.env</code> 文件中添加 <code>VOLC_ARK_API_KEY</code> 和 <code>VOLC_ARK_MODEL_ID</code> 来启用自动LLM推理
+          </div>
+        )}
 
         {log.length > 0 && (
           <div id="log-wrap" style={{ display: 'block', marginTop: '12px' }}>

@@ -3,67 +3,86 @@
   z-index: 1;
   max-width: 1200px;
   margin: 0 auto;
+  animation: floatUp 0.6s ease-out;
 }
 
 .difficulty-section {
-  margin-bottom: 48px;
+  margin-bottom: 56px;
 }
 
 .difficulty-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 22px;
-  font-weight: 700;
+  gap: 12px;
+  font-size: 28px;
+  font-weight: 800;
   margin-bottom: 8px;
-  letter-spacing: -0.5px;
+  letter-spacing: -1px;
 }
 
 .difficulty-badge {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
+  box-shadow: 0 0 12px 2px currentColor;
 }
 
 .difficulty-description {
   color: var(--muted);
-  font-size: 15px;
-  margin-bottom: 24px;
-  margin-left: 22px;
-  line-height: 1.5;
+  font-size: 16px;
+  margin-bottom: 32px;
+  margin-left: 26px;
+  line-height: 1.6;
 }
 
-/* Xiaohongshu-style 2-column waterfall grid */
+/* 2-column responsive grid */
 .courses-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
 }
 
 .course-card {
-  background: var(--bg2);
+  background: linear-gradient(180deg, var(--bg2) 0%, rgba(13, 15, 20, 0.95) 100%);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-slow);
   cursor: pointer;
+  position: relative;
+}
+
+.course-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top center, rgba(0,212,170,0.12) 0%, transparent 55%);
+  opacity: 0;
+  transition: opacity var(--transition-slow);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.course-card:hover::before {
+  opacity: 1;
 }
 
 .course-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-  border-color: var(--primary);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+  border-color: var(--cyan);
 }
 
-/* Xiaohongshu-style cover header with gradient */
+/* Course header with emoji icon */
 .course-header {
   position: relative;
-  height: 120px;
+  height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--bg3) 0%, rgba(0,212,170,0.15) 100%);
+  background: linear-gradient(135deg, var(--bg3) 0%, rgba(0,212,170,0.20) 100%);
   margin-bottom: 0;
+  overflow: hidden;
 }
 
 .course-header::before {
@@ -73,32 +92,41 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.08) 0%, transparent 50%);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(0,212,170,0.15) 0%, transparent 50%);
 }
 
 .course-icon {
-  font-size: 56px;
-  width: 80px;
-  height: 80px;
+  font-size: 64px;
+  width: 90px;
+  height: 90px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 24px;
   backdrop-filter: blur(10px);
   z-index: 1;
+  transform: rotate(-5deg);
+  transition: transform var(--transition-slow);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.course-card:hover .course-icon {
+  transform: rotate(0deg) scale(1.05);
 }
 
 .course-info {
-  padding: 16px 16px 12px 16px;
+  padding: 20px 20px 16px 20px;
 }
 
 .course-name {
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 700;
   margin: 0 0 8px 0;
   line-height: 1.3;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.5px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -106,9 +134,9 @@
 }
 
 .course-description {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted);
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
   line-height: 1.5;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -119,46 +147,56 @@
 .lessons-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 0 12px 16px 12px;
+  gap: 10px;
+  padding: 0 16px 20px 16px;
 }
 
 .lesson-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 10px;
+  gap: 10px;
+  padding: 12px 12px;
   background: var(--bg3);
   border: 1px solid transparent;
-  border-radius: 10px;
+  border-radius: 12px;
   text-decoration: none;
   color: var(--text);
-  transition: all 0.2s;
+  transition: all var(--transition-fast);
 }
 
 .lesson-item:hover {
-  border-color: var(--primary);
-  background: rgba(0,212,170,0.08);
+  border-color: var(--cyan);
+  background: rgba(0,212,170,0.10);
+  box-shadow: 0 0 12px 1px rgba(0,212,170,0.2);
+  transform: translateX(4px);
 }
 
 .lesson-item.locked {
-  opacity: 0.45;
+  opacity: 0.35;
   cursor: not-allowed;
+  transform: none;
+}
+
+.lesson-item.locked:hover {
+  border-color: transparent;
+  background: var(--bg3);
+  box-shadow: none;
+  transform: none;
 }
 
 .lesson-item.completed {
-  border-color: rgba(0,212,170,0.5);
-  background: rgba(0,212,170,0.08);
+  border-color: rgba(0,212,170,0.6);
+  background: rgba(0,212,170,0.12);
 }
 
 .lesson-status {
-  font-size: 14px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
 .lesson-title {
   flex: 1;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 1.3;
   overflow: hidden;
@@ -168,14 +206,15 @@
 
 .mcp-badge {
   background: rgba(155,114,207,0.2);
-  border: 1px solid rgba(155,114,207,0.4);
+  border: 1px solid rgba(155,114,207,0.5);
   color: var(--purple);
-  padding: 3px 8px;
-  border-radius: 12px;
+  padding: 4px 10px;
+  border-radius: 14px;
   font-size: 10px;
   font-family: var(--mono);
   font-weight: 700;
   flex-shrink: 0;
+  letter-spacing: 0.5px;
 }
 
 .lesson-bounty {
@@ -186,10 +225,29 @@
   flex-shrink: 0;
 }
 
+/* Staggered animation for course cards */
+.courses-list .course-card {
+  animation: floatUp 0.5s ease-out backwards;
+}
+
+.courses-list .course-card:nth-child(1) { animation-delay: 0.05s; }
+.courses-list .course-card:nth-child(2) { animation-delay: 0.10s; }
+.courses-list .course-card:nth-child(3) { animation-delay: 0.15s; }
+.courses-list .course-card:nth-child(4) { animation-delay: 0.20s; }
+.courses-list .course-card:nth-child(5) { animation-delay: 0.25s; }
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .courses-list {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 20px;
+  }
+
+  .difficulty-header {
+    font-size: 24px;
+  }
+
+  .difficulty-description {
+    margin-left: 0;
   }
 }

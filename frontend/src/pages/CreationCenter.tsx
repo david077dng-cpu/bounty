@@ -92,11 +92,11 @@ const CreationCenter: React.FC = () => {
 
     try {
       // Parse steps from text (each line: type:text)
-      let parsedSteps = [];
+      let parsedSteps: [string, string][] = [];
       if (formData.steps.trim()) {
         parsedSteps = formData.steps.trim().split('\n').map(line => {
           const [type, ...textParts] = line.split(':');
-          return [type.trim(), textParts.join(':').trim()];
+          return [type.trim(), textParts.join(':').trim()] as [string, string];
         });
       }
 
