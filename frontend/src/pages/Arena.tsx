@@ -4,6 +4,7 @@ import { tasksApi, submissionsApi, mcpApi, arkApi } from '../services/api';
 import type { Task, Scores, MCPConnection, MCPTool, SlashCommand } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import SlashCommandPopup from '../components/SlashCommandPopup';
+import PrisonerDilemmaSimulation from '../components/PrisonerDilemmaSimulation';
 import { slashCommandRegistry } from '../utils/slashCommandRegistry';
 import '../styles/Arena.css';
 
@@ -534,6 +535,16 @@ const Arena: React.FC = () => {
 
   // --- End Slash Command Handling ---
 
+  // Auto-resize textarea based on content
+  useEffect(() => {
+    if (textareaRef.current) {
+      // Reset height to auto to get the correct scrollHeight
+      textareaRef.current.style.height = 'auto';
+      // Set height to scrollHeight to fit all content
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [userAnswer]);
+
   const submitManual = () => {
     if (!task || !userAnswer.trim()) return;
 
@@ -619,6 +630,9 @@ const Arena: React.FC = () => {
           </div>
           {task.hint && <div className="q-hint">💡 {task.hint}</div>}
         </div>
+
+        {/* Interactive Prisoner Dilemma Simulation for E001 */}
+        {task.id === 'E001' && <PrisonerDilemmaSimulation />}
 
         {/* MCP Tool Calling Panel - only shown when user is logged in and has connections */}
         {user && mcpConnections.length > 0 && (
