@@ -31,9 +31,12 @@ const Arena: React.FC = () => {
   const [mcpCallError, setMcpCallError] = useState<string | null>(null);
   const [selectedTool, setSelectedTool] = useState<string>('');
   const [toolArguments, setToolArguments] = useState<string>('{}');
-  // ARK LLM agent state
+  // ARK LLM agent state (hidden for now)
   const [arkConfigured, setArkConfigured] = useState(false);
   const [arkStreaming, setArkStreaming] = useState(false);
+  // Keep TypeScript happy
+  void arkConfigured;
+  void arkStreaming;
   // Slash Command state
   const [showSlashCommand, setShowSlashCommand] = useState(false);
   const [slashQuery, setSlashQuery] = useState('');
@@ -258,6 +261,9 @@ const Arena: React.FC = () => {
       setRunning(false);
     }
   };
+
+  // Keep TypeScript happy
+  void runArkAgent;
 
   const addLog = (type: string, text: string) => {
     setLog(prev => [...prev, [type, text]]);
