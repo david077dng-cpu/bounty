@@ -762,51 +762,20 @@ const Arena: React.FC = () => {
             className="run-btn"
             id="run-btn"
             onClick={runDemo}
-            disabled={running || arkStreaming}
+            disabled={running}
             style={{ flex: 1 }}
           >
             ▶ 演示训练 · 观看示例
           </button>
-          {arkConfigured && (
-            <button
-              className="run-btn"
-              onClick={runArkAgent}
-              disabled={running || arkStreaming}
-              style={{
-                flex: 1,
-                borderColor: 'rgba(255, 102, 0, 0.5)',
-                color: '#ff6600',
-                background: 'rgba(255, 102, 0, 0.08)',
-              }}
-            >
-              ⚡ ARK · 自动推理
-            </button>
-          )}
           <button
             className="run-btn"
             onClick={submitManual}
-            disabled={running || arkStreaming || !userAnswer.trim()}
+            disabled={running || !userAnswer.trim()}
             style={{ flex: 1, borderColor: 'rgba(155,114,207,0.5)', color: 'var(--purple)' }}
           >
             ✎ 提交评估
           </button>
         </div>
-
-        {!arkConfigured && user && (
-          <div
-            style={{
-              padding: '12px 16px',
-              background: 'rgba(255, 102, 0, 0.08)',
-              border: '1px solid rgba(255, 102, 0, 0.3)',
-              borderRadius: '10px',
-              marginBottom: '12px',
-              color: '#ff6600',
-              fontSize: '13px',
-            }}
-          >
-            💡 ARK 未配置，请在后端 <code>.env</code> 文件中添加 <code>VOLC_ARK_API_KEY</code> 和 <code>VOLC_ARK_MODEL_ID</code> 来启用自动LLM推理
-          </div>
-        )}
 
         {log.length > 0 && (
           <div id="log-wrap" style={{ display: 'block', marginTop: '12px' }}>
