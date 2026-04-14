@@ -149,6 +149,12 @@ export const creationApi = {
 
   deleteTask: (id: string) =>
     api.delete<{ success: boolean; error?: string }>(`/creation/task/${id}`),
+
+  fetchUrl: (url: string) =>
+    api.post<{ success: boolean; text: string; length: number; error?: string }>('/creation/fetch-url', { url }),
+
+  generateTasks: (sourceText: string, count?: number, tier?: string) =>
+    api.post<{ success: boolean; tasks: any[]; error?: string }>('/creation/generate-tasks', { sourceText, count, tier }),
 };
 
 // ARK Volc Engine LLM API
@@ -178,5 +184,30 @@ export const chessApi = {
       { fen, history }
     ),
 };
+
+// Social API (likes + comments)
+export const socialApi = {
+  getStats: (taskId: string) =>
+    api.get<{ success: boolean; likeCount: number; commentCount: number; liked: boolean }>(`/social/stats/${taskId}`),
+
+  toggleLike: (taskId: string) =>
+    api.post<{ success: boolean; liked: boolean; likeCount: number }>(`/social/like/${taskId}`),
+
+  getComments: (taskId: string) =>
+    api.get<{ success: boolean; comments: SocialComment[] }>(`/social/comments/${taskId}`),
+
+  addComment: (taskId: string, content: string) =>
+    api.post<{ success: boolean; comment: SocialComment }>(`/social/comments/${taskId}`, { content }),
+
+  deleteComment: (commentId: number) =>
+    api.delete<{ success: boolean }>(`/social/comments/${commentId}`),
+};
+
+export interface SocialComment {
+  id: number;
+  content: string;
+  createdAt: string;
+  user: { id: number; username: string };
+}
 
 export default api;

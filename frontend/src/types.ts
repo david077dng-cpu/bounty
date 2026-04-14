@@ -23,6 +23,9 @@ export interface TaskListItem {
   category: string;
   questionPreview: string;
   completed: boolean;
+  authorId: number | null;
+  likeCount: number;
+  commentCount: number;
 }
 
 export interface Task {
@@ -40,6 +43,7 @@ export interface Task {
   refReasoning: number;
   refCreativity: number;
   refSpeed: number;
+  authorId?: number | null;
 }
 
 export interface Scores {
