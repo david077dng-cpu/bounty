@@ -29,6 +29,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
         </span>
         <span className="tag cat">{task.category}</span>
         {task.completed && <span className="tag completed">✅ 已掌握</span>}
+        <span className="task-social-counts">🤍 {task.likeCount ?? 0}  💬 {task.commentCount ?? 0}</span>
       </div>
       <button className="run-btn">{task.completed ? '▶ 再次训练' : '▶ 开始训练'}</button>
     </div>
