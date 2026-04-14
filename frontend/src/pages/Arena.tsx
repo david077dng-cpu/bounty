@@ -5,6 +5,7 @@ import type { Task, Scores, MCPConnection, MCPTool, SlashCommand } from '../type
 import { useAuth } from '../contexts/AuthContext';
 import SlashCommandPopup from '../components/SlashCommandPopup';
 import PrisonerDilemmaSimulation from '../components/PrisonerDilemmaSimulation';
+import SocialPanel from '../components/SocialPanel';
 import { slashCommandRegistry } from '../utils/slashCommandRegistry';
 import '../styles/Arena.css';
 
@@ -854,6 +855,7 @@ const Arena: React.FC = () => {
           </div>
         )}
       </div>
+      <SocialPanel taskId={task.id} taskAuthorId={task.authorId} />
     </div>
   );
 };
