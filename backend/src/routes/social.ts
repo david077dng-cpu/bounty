@@ -24,15 +24,14 @@ router.get('/stats/:taskId', async (req, res) => {
   const { taskId } = req.params;
   const userId = getOptionalUserId(req);
   try {
-    const [likeCount, commentCount] = await Promise.all([
+    const [likeCount, commentCount, existingLike] = await Promise.all([
       prisma.like.count({ where: { taskId } }),
       prisma.comment.count({ where: { taskId } }),
+      userId
+        ? prisma.like.findUnique({ where: { userId_taskId: { userId, taskId } } })
+        : Promise.resolve(null),
     ]);
-    let liked = false;
-    if (userId) {
-      const existing = await prisma.like.findUnique({ where: { userId_taskId: { userId, taskId } } });
-      liked = !!existing;
-    }
+    const liked = !!existingLike;
     res.json({ success: true, likeCount, commentCount, liked });
   } catch (error) {
     console.error('Social stats error:', error);
@@ -45,6 +44,8 @@ router.post('/like/:taskId', authMiddleware, async (req, res) => {
   const { taskId } = req.params;
   const userId = req.userId!;
   try {
+    const task = await prisma.task.findUnique({ where: { id: taskId } });
+    if (!task) return res.status(404).json({ error: 'Task not found' });
     const existing = await prisma.like.findUnique({ where: { userId_taskId: { userId, taskId } } });
     let liked: boolean;
     if (existing) {
@@ -94,12 +95,15 @@ router.post('/comments/:taskId', authMiddleware, async (req, res) => {
   if (!content || typeof content !== 'string' || content.trim().length === 0) {
     return res.status(400).json({ error: '评论内容不能为空' });
   }
-  if (content.length > 500) {
+  const trimmedContent = content.trim();
+  if (trimmedContent.length > 500) {
     return res.status(400).json({ error: '评论最多 500 字' });
   }
   try {
+    const task = await prisma.task.findUnique({ where: { id: taskId } });
+    if (!task) return res.status(404).json({ error: 'Task not found' });
     const comment = await prisma.comment.create({
-      data: { userId, taskId, content: content.trim() },
+      data: { userId, taskId, content: trimmedContent },
       include: { user: { select: { id: true, username: true } } },
     });
     res.json({
