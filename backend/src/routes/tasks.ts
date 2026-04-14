@@ -22,22 +22,20 @@ router.get('/', async (req, res) => {
       }
     }
 
-    const tasks = await prisma.task.findMany({
-      where,
-      include: {
-        category: {
-          select: {
-            name: true,
-            icon: true,
-          },
-        },
-      },
-      orderBy: {
-        id: 'asc',
-      },
-    });
+    const [tasks, categories] = await Promise.all([
+      prisma.task.findMany({
+        where,
+        include: { category: { select: { name: true, icon: true } } },
+        orderBy: { id: 'asc' },
+      }),
+      prisma.category.findMany({
+        select: { id: true, name: true, icon: true },
+      }),
+    ]);
 
-    // Get all completed tasks for this user (if logged in)
+    const taskIds = tasks.map(t => t.id);
+
+    // Get completed tasks for this user (if logged in) + like/comment counts
     const completedTaskIds = new Set<string>();
     if (userId) {
       const completedSubmissions = await prisma.submission.findMany({
@@ -47,13 +45,21 @@ router.get('/', async (req, res) => {
       completedSubmissions.forEach(s => completedTaskIds.add(s.taskId));
     }
 
-    const categories = await prisma.category.findMany({
-      select: {
-        id: true,
-        name: true,
-        icon: true,
-      },
-    });
+    const [likeCounts, commentCounts] = await Promise.all([
+      prisma.like.groupBy({
+        by: ['taskId'],
+        where: { taskId: { in: taskIds } },
+        _count: { id: true },
+      }),
+      prisma.comment.groupBy({
+        by: ['taskId'],
+        where: { taskId: { in: taskIds } },
+        _count: { id: true },
+      }),
+    ]);
+
+    const likeMap = new Map(likeCounts.map(r => [r.taskId, r._count.id]));
+    const commentMap = new Map(commentCounts.map(r => [r.taskId, r._count.id]));
 
     res.json({
       success: true,
@@ -66,12 +72,11 @@ router.get('/', async (req, res) => {
         category: t.category.name,
         questionPreview: t.question.split('\n')[0].slice(0, 80) + '...',
         completed: completedTaskIds.has(t.id),
+        authorId: t.authorId,
+        likeCount: likeMap.get(t.id) ?? 0,
+        commentCount: commentMap.get(t.id) ?? 0,
       })),
-      categories: categories.map(c => ({
-        id: c.id,
-        name: c.name,
-        icon: c.icon,
-      })),
+      categories: categories.map(c => ({ id: c.id, name: c.name, icon: c.icon })),
     });
   } catch (error) {
     console.error('Tasks list error:', error);
@@ -117,6 +122,7 @@ router.get('/:id', async (req, res) => {
         refReasoning: task.refReasoning,
         refCreativity: task.refCreativity,
         refSpeed: task.refSpeed,
+        authorId: task.authorId,
       },
     });
   } catch (error) {
