@@ -24,6 +24,8 @@ model User {
   mcpConnections MCPConnection[]
   createdTasks  Task[]
   createdCourses Course[]
+  likes         Like[]
+  comments      Comment[]
 }
 
 model Category {
@@ -57,6 +59,8 @@ model Task {
 
   submissions Submission[]
   lessons     Lesson[]
+  likes         Like[]
+  comments      Comment[]
 }
 
 model Submission {
@@ -125,6 +129,26 @@ model UserProgress {
   lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
   completed Boolean  @default(true)
   completedAt DateTime @default(now())
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  taskId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  @@unique([userId, taskId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  taskId    String
+  content   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }
 
 // Store user's MCP server connections
