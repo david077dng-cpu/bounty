@@ -170,4 +170,13 @@ export const arkApi = {
   },
 };
 
+// Chess API
+export const chessApi = {
+  getMove: (fen: string, history: string[]) =>
+    api.post<{ success: boolean; data?: { move: string; thinking: string }; error?: string }>(
+      '/chess/move',
+      { fen, history }
+    ),
+};
+
 export default api;

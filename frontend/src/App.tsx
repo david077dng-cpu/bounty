@@ -11,6 +11,7 @@ import Courses from './pages/Courses';
 import Dashboard from './pages/Dashboard';
 import CreationCenter from './pages/CreationCenter';
 import MCPConnections from './pages/MCPConnections';
+import Chess from './pages/Chess';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/history" element={<History />} />
           <Route path="/mcp-connections" element={<MCPConnections />} />
+          <Route path="/chess" element={<Chess />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

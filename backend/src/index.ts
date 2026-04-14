@@ -15,6 +15,7 @@ import coursesRoutes from './routes/courses';
 import mcpRoutes from './routes/mcp';
 import creationRoutes from './routes/creation';
 import arkRoutes from './routes/ark';
+import chessRoutes from './routes/chess';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -37,6 +38,7 @@ app.use('/api/courses', coursesRoutes);
 app.use('/api/mcp', mcpRoutes);
 app.use('/api/creation', creationRoutes);
 app.use('/api/ark', arkRoutes);
+app.use('/api/chess', chessRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

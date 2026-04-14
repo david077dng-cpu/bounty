@@ -98,3 +98,26 @@ Backend `.env`:
 - Task IDs are string codes (e.g., `M001`, `A001`), not auto-increment
 - CSS uses CSS variables with a dark theme
 - Frontend API base URL is hardcoded in `services/api.ts`
+
+### Task Step Types
+
+Used in the `steps` JSON array and rendered in the Arena log panel:
+
+| Type | Meaning |
+|---|---|
+| `step` | Top-level step header |
+| `think` | Reasoning / chain-of-thought line |
+| `calc` | Calculation or derivation |
+| `ok` | Success / conclusion line |
+| `warn` | Warning or caveat |
+
+### Task ID Prefixes
+
+`M`=悬疑推理, `A`=综合联想, `C`=代码能力, `N`=数学基础, `S`=自然科学, `L`=逻辑能力, `E`=进化博弈
+
+### Scoring & Tier Progression
+
+- `totalScore` (per submission) = average of 4 dimension scores (0–100)
+- Grade: S≥90, A≥80, B≥70, C≥60, D<60
+- User `totalScore` accumulates as: `taskScore × 12 + bountyEarned` per submission
+- Tier thresholds on `User.totalScore`: 幼年期 (default) → 成长期 (>2000) → 成熟期 (>8000) → 究极体 (>12000)
