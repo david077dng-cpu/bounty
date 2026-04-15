@@ -73,6 +73,7 @@ router.get('/tasks/:id/illustration', async (req, res) => {
             { role: 'user', content: userPrompt },
           ],
           stream: false,
+          max_tokens: 4096,
         },
         {
           headers: {
@@ -86,7 +87,7 @@ router.get('/tasks/:id/illustration', async (req, res) => {
       const raw: string = response.data?.choices?.[0]?.message?.content ?? '';
       const trimmed = raw.trim();
 
-      if (trimmed.toLowerCase().startsWith('<svg')) {
+      if (trimmed.toLowerCase().startsWith('<svg') && !/<script/i.test(trimmed)) {
         svgContent = trimmed;
         // Cache in DB
         await prisma.task.update({
