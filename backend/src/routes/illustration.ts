@@ -5,9 +5,10 @@ import axios from 'axios';
 const router = express.Router();
 const prisma = new PrismaClient();
 
-const ARK_BASE_URL = process.env.VOLC_ARK_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3';
-const ARK_API_KEY = process.env.VOLC_ARK_API_KEY;
-const ARK_MODEL_ID = process.env.VOLC_ARK_MODEL_ID || 'doubao-1.5-pro-256k';
+// Read at request time so dotenv.config() in index.ts takes effect before first request
+const arkBaseUrl = () => process.env.VOLC_ARK_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3';
+const arkApiKey = () => process.env.VOLC_ARK_API_KEY;
+const arkModelId = () => process.env.VOLC_ARK_MODEL_ID || 'doubao-1.5-pro-256k';
 
 const inFlight = new Set<string>();
 
@@ -54,7 +55,8 @@ router.get('/tasks/:id/illustration', async (req, res) => {
     }
 
     // No ARK key configured
-    if (!ARK_API_KEY) {
+    const apiKey = arkApiKey();
+    if (!apiKey) {
       console.warn('[illustration] VOLC_ARK_API_KEY not set');
       return res.json({ success: true, data: { svg: null } });
     }
@@ -73,9 +75,9 @@ router.get('/tasks/:id/illustration', async (req, res) => {
 
     try {
       const response = await axios.post(
-        `${ARK_BASE_URL}/chat/completions`,
+        `${arkBaseUrl()}/chat/completions`,
         {
-          model: ARK_MODEL_ID,
+          model: arkModelId(),
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userPrompt },
@@ -85,7 +87,7 @@ router.get('/tasks/:id/illustration', async (req, res) => {
         },
         {
           headers: {
-            Authorization: `Bearer ${ARK_API_KEY}`,
+            Authorization: `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
           timeout: 30000,
