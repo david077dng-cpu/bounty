@@ -17,6 +17,7 @@ import creationRoutes from './routes/creation';
 import arkRoutes from './routes/ark';
 import chessRoutes from './routes/chess';
 import socialRoutes from './routes/social';
+import illustrationRoutes from './routes/illustration';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -41,6 +42,7 @@ app.use('/api/creation', creationRoutes);
 app.use('/api/ark', arkRoutes);
 app.use('/api/chess', chessRoutes);
 app.use('/api/social', socialRoutes);
+app.use('/api', illustrationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

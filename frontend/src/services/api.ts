@@ -210,4 +210,10 @@ export interface SocialComment {
   user: { id: number; username: string };
 }
 
+// Illustration API
+export const illustrationApi = {
+  get: (taskId: string) =>
+    api.get<{ success: boolean; data: { svg: string | null } }>(`/tasks/${taskId}/illustration`),
+};
+
 export default api;
