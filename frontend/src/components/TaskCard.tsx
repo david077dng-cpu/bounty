@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { TaskListItem } from '../types';
 import '../styles/TaskCard.css';
+import IllustrationPanel from './IllustrationPanel';
 
 interface TaskCardProps {
   task: TaskListItem;
@@ -16,6 +17,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
 
   return (
     <div className={`task-card ${task.tier} ${task.completed ? 'completed' : ''}`} onClick={handleClick}>
+      <IllustrationPanel taskId={task.id} thumbnail />
       <div className="task-header">
         <div className="task-name">
           {task.catIcon} {task.id} · {task.name}
