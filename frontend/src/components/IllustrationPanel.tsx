@@ -12,14 +12,23 @@ const IllustrationPanel: React.FC<IllustrationPanelProps> = ({ taskId, thumbnail
 
   useEffect(() => {
     let cancelled = false;
+    const timer = setTimeout(() => {
+      if (!cancelled) setSvg(null);
+    }, 35000);
+
     illustrationApi.get(taskId)
       .then(res => {
         if (!cancelled) setSvg(res.data?.data?.svg ?? null);
       })
       .catch(() => {
         if (!cancelled) setSvg(null);
-      });
-    return () => { cancelled = true; };
+      })
+      .finally(() => clearTimeout(timer));
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [taskId]);
 
   if (svg === 'loading') {

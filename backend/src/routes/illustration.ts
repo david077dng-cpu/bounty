@@ -9,6 +9,8 @@ const ARK_BASE_URL = process.env.VOLC_ARK_BASE_URL || 'https://ark.cn-beijing.vo
 const ARK_API_KEY = process.env.VOLC_ARK_API_KEY;
 const ARK_MODEL_ID = process.env.VOLC_ARK_MODEL_ID || 'doubao-1.5-pro-256k';
 
+const inFlight = new Set<string>();
+
 const STYLE_MAP: Record<string, string> = {
   M: '案发现场平面图或时间线图',
   A: '概念关系网络图',
@@ -57,6 +59,12 @@ router.get('/tasks/:id/illustration', async (req, res) => {
       return res.json({ success: true, data: { svg: null } });
     }
 
+    // Prevent duplicate concurrent generation for same task
+    if (inFlight.has(id)) {
+      return res.json({ success: true, data: { svg: null } });
+    }
+    inFlight.add(id);
+
     // Generate via ARK
     const systemPrompt = buildSystemPrompt(task.id);
     const userPrompt = `任务名：${task.name}\n类别：${task.category.name}\n描述：${task.question}`;
@@ -87,7 +95,8 @@ router.get('/tasks/:id/illustration', async (req, res) => {
       const raw: string = response.data?.choices?.[0]?.message?.content ?? '';
       const trimmed = raw.trim();
 
-      if (trimmed.toLowerCase().startsWith('<svg') && !/<script/i.test(trimmed)) {
+      const DANGEROUS_SVG = /<script|on\w+\s*=|javascript:|<foreignObject|<animate/i;
+      if (trimmed.toLowerCase().startsWith('<svg') && !DANGEROUS_SVG.test(trimmed)) {
         svgContent = trimmed;
         // Cache in DB
         await prisma.task.update({
@@ -99,6 +108,8 @@ router.get('/tasks/:id/illustration', async (req, res) => {
       }
     } catch (err: any) {
       console.error(`[illustration] ARK call failed for task ${id}:`, err.message);
+    } finally {
+      inFlight.delete(id);
     }
 
     return res.json({ success: true, data: { svg: svgContent } });
