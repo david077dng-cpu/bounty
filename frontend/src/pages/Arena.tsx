@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import SlashCommandPopup from '../components/SlashCommandPopup';
 import PrisonerDilemmaSimulation from '../components/PrisonerDilemmaSimulation';
 import SocialPanel from '../components/SocialPanel';
+import IllustrationPanel from '../components/IllustrationPanel';
 import { slashCommandRegistry } from '../utils/slashCommandRegistry';
 import '../styles/Arena.css';
 
@@ -637,6 +638,8 @@ const Arena: React.FC = () => {
           </div>
           {task.hint && <div className="q-hint">💡 {task.hint}</div>}
         </div>
+
+        <IllustrationPanel taskId={task.id} />
 
         {/* Interactive Prisoner Dilemma Simulation for E001 */}
         {task.id === 'E001' && <PrisonerDilemmaSimulation />}
