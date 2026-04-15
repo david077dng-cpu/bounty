@@ -14,7 +14,7 @@ const IllustrationPanel: React.FC<IllustrationPanelProps> = ({ taskId, thumbnail
     let cancelled = false;
     illustrationApi.get(taskId)
       .then(res => {
-        if (!cancelled) setSvg(res.data.data.svg);
+        if (!cancelled) setSvg(res.data?.data?.svg ?? null);
       })
       .catch(() => {
         if (!cancelled) setSvg(null);
