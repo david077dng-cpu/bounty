@@ -1,25 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
-
+/* Courses.css – uses global vars from globals.css */
 :root {
-  --mono: 'Space Mono', monospace;
-  --sans: 'Noto Sans SC', sans-serif;
-  --color-background-tertiary: var(--bg1);
+  --color-background-tertiary: var(--bg);
   --color-background-primary: var(--bg2);
   --color-background-secondary: var(--bg3);
-  --color-background-info: rgba(0, 212, 170, 0.15);
-  --color-background-success: rgba(29, 158, 117, 0.15);
-  --color-background-danger: rgba(239, 68, 68, 0.15);
+  --color-background-info: var(--primary-light);
+  --color-background-success: rgba(29, 158, 117, 0.10);
+  --color-background-danger: rgba(255, 51, 86, 0.08);
   --color-text-primary: var(--text);
   --color-text-secondary: var(--muted);
-  --color-text-info: var(--cyan);
+  --color-text-info: var(--primary);
   --color-text-success: #1D9E75;
-  --color-text-danger: #EF4444;
+  --color-text-danger: var(--red);
   --color-border-secondary: var(--border);
-  --color-border-tertiary: var(--border-light);
-  --color-border-info: var(--cyan);
-  --border-radius-lg: 12px;
-  --border-radius-md: 8px;
-  --border-radius-sm: 4px;
+  --color-border-tertiary: rgba(0,0,0,0.05);
+  --color-border-info: var(--primary-mid);
+  --border-radius-lg: var(--radius-md);
+  --border-radius-md: var(--radius-sm);
+  --border-radius-sm: 6px;
 }
 
 .courses-page {
@@ -29,17 +26,18 @@
   max-width: 960px;
   margin: 0 auto;
   padding: 2rem 1.25rem 4rem;
-  animation: floatUp 0.6s ease-out;
+  animation: fadeSlideUp 0.5s ease-out;
 }
 
 .hero {
-  border: 0.5px solid var(--color-border-secondary);
-  border-radius: var(--border-radius-lg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 2rem 2rem 1.75rem;
   margin-bottom: 2rem;
-  background: var(--color-background-primary);
+  background: var(--bg2);
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .hero-grid {
@@ -152,26 +150,32 @@
 }
 
 .filter-btn {
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 6px 14px;
-  border-radius: var(--border-radius-md);
-  border: 0.5px solid var(--color-border-secondary);
-  background: var(--color-background-primary);
-  color: var(--color-text-secondary);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border);
+  background: var(--bg2);
+  color: var(--muted);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.18s;
   white-space: nowrap;
+  box-shadow: var(--shadow-sm);
 }
 
 .filter-btn:hover {
-  background: var(--color-background-secondary);
+  background: var(--bg3);
+  color: var(--text2);
+  border-color: rgba(255,100,80,0.2);
 }
 
 .filter-btn.on {
-  background: var(--color-background-info);
-  border-color: var(--color-border-info);
-  color: var(--color-text-info);
+  background: var(--primary-light);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: 0 2px 8px var(--primary-glow);
 }
 
 .courses-grid {
@@ -182,21 +186,25 @@
 }
 
 .course-card {
-  background: var(--color-background-primary);
-  border: 0.5px solid var(--color-border-tertiary);
-  border-radius: var(--border-radius-lg);
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 1.25rem;
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: all 0.2s;
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
 
 .course-card:hover {
-  border-color: var(--color-border-secondary);
+  border-color: rgba(255,100,80,0.2);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .course-card.featured {
-  border: 2px solid var(--color-border-info);
+  border: 2px solid var(--primary-mid);
+  box-shadow: 0 4px 16px var(--primary-glow);
 }
 
 .card-top {

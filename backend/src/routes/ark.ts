@@ -5,7 +5,7 @@ import axios from 'axios';
 const router = express.Router();
 
 // ARK Volc Engine API endpoint
-const ARK_BASE_URL = process.env.VOLC_ARK_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3';
+const ARK_BASE_URL = process.env.VOLC_ARK_BASE_URL || 'https://ark.cn-beijing.volces.com/api/coding/v3';
 const ARK_API_KEY = process.env.VOLC_ARK_API_KEY;
 const ARK_MODEL_ID = process.env.VOLC_ARK_MODEL_ID;
 
@@ -20,7 +20,7 @@ router.post('/completion', authMiddleware, async (req, res) => {
       });
     }
 
-    const actualModelId = modelId || ARK_MODEL_ID || 'doubao-1.5-pro-256k';
+    const actualModelId = modelId || ARK_MODEL_ID || 'ark-code-latest';
 
     // Set SSE headers for streaming
     res.writeHead(200, {

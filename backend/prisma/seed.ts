@@ -677,6 +677,7 @@ async function main() {
     { name: '逻辑能力', icon: '🧠' },
     { name: '进化博弈', icon: '🧬' },
     { name: '批判性思维', icon: '🧠' },
+    { name: '心理学效应', icon: '🧪' },
   ];
 
   for (const cat of categories) {

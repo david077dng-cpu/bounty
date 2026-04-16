@@ -1,11 +1,11 @@
-/* Slash Command Popup - matches the dark theme design system */
+/* Slash Command Popup - light theme */
 .slash-command-popup {
   position: absolute;
   z-index: 1000;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   min-width: 320px;
   max-width: 420px;
   max-height: 380px;
@@ -15,17 +15,18 @@
 }
 
 .slash-command-popup-header {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg2);
+  padding: 10px 16px;
+  border-bottom: 1.5px solid var(--border);
+  background: var(--bg3);
 }
 
 .slash-command-popup-header span {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
-  font-family: var(--mono);
+  font-family: var(--sans);
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .slash-command-list {
@@ -35,15 +36,15 @@
 }
 
 .slash-command-list::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .slash-command-list::-webkit-scrollbar-track {
-  background: var(--bg2);
+  background: var(--bg3);
 }
 
 .slash-command-list::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: rgba(0,0,0,0.12);
   border-radius: 4px;
 }
 
@@ -58,11 +59,11 @@
 
 .slash-command-item:hover,
 .slash-command-item.selected {
-  background: rgba(0, 212, 170, 0.1);
+  background: var(--primary-light);
 }
 
 .slash-command-item.selected {
-  border-left: 3px solid var(--cyan);
+  border-left: 3px solid var(--primary);
 }
 
 .slash-command-icon {
@@ -85,17 +86,18 @@
 }
 
 .slash-command-name {
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: 14px;
   color: var(--text);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .slash-command-category {
   font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(122, 127, 142, 0.2);
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(0,0,0,0.06);
   color: var(--muted);
   text-transform: lowercase;
 }
@@ -109,30 +111,30 @@
   white-space: nowrap;
 }
 
-/* Category-specific category badge colors */
+/* Category badge colors - warm light palette */
 .slash-command-category.navigation {
-  background: rgba(74, 158, 255, 0.15);
-  color: #4a9eff;
+  background: rgba(74, 158, 255, 0.10);
+  color: var(--blue);
 }
 
 .slash-command-category.template {
-  background: rgba(155, 114, 207, 0.15);
-  color: #9b72cf;
+  background: rgba(155, 114, 207, 0.10);
+  color: var(--purple);
 }
 
 .slash-command-category.action {
-  background: rgba(245, 197, 66, 0.15);
-  color: #f5c542;
+  background: rgba(245, 166, 35, 0.12);
+  color: var(--gold);
 }
 
 .slash-command-category.mcp {
-  background: rgba(0, 212, 170, 0.15);
+  background: rgba(0, 201, 167, 0.10);
   color: var(--cyan);
 }
 
 .slash-command-category.digimon {
-  background: rgba(255, 102, 0, 0.15);
-  color: #ff6600;
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 /* Position adjustments when near the bottom of the viewport */

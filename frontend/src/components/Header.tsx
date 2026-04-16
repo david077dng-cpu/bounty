@@ -46,6 +46,9 @@ const Header: React.FC = () => {
         <Link to="/courses" className="nav-link">进化路线</Link>
         <Link to="/leaderboard" className="nav-link">排名榜</Link>
         <Link to="/chess" className="nav-link">棋局</Link>
+        {!loading && user && (
+          <Link to="/creation" className="nav-link">挑战工坊</Link>
+        )}
         {!loading && (
           <>
             {user ? (
