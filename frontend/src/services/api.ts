@@ -183,6 +183,27 @@ export const chessApi = {
       '/chess/move',
       { fen, history }
     ),
+
+  getStats: () =>
+    api.get<{
+      success: boolean;
+      data: { elo: number; streak: number; xpTotal: number; lastPlayedDate: string | null };
+      error?: string;
+    }>('/chess/stats'),
+
+  submitResult: (result: 'win' | 'draw' | 'loss') =>
+    api.post<{
+      success: boolean;
+      data: {
+        eloChange: number;
+        newElo: number;
+        xpEarned: number;
+        streak: number;
+        streakMultiplier: number;
+        newTier: string;
+      };
+      error?: string;
+    }>('/chess/result', { result }),
 };
 
 // Social API (likes + comments)
