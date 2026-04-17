@@ -2,12 +2,55 @@ import express from 'express';
 import axios from 'axios';
 import { Chess } from 'chess.js';
 import { authMiddleware } from '../middleware/auth';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 const router = express.Router();
 
-const ARK_BASE_URL = process.env.VOLC_ARK_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3';
-const ARK_API_KEY = process.env.VOLC_ARK_API_KEY;
-const ARK_MODEL_ID = process.env.VOLC_ARK_MODEL_ID || 'doubao-1.5-pro-256k';
+function getArkConfig() {
+  return {
+    baseUrl: process.env.VOLC_ARK_BASE_URL || 'https://ark.cn-beijing.volces.com/api/coding/v3',
+    apiKey: process.env.VOLC_ARK_API_KEY,
+    modelId: process.env.VOLC_ARK_MODEL_ID || 'doubao-1.5-pro-256k',
+  };
+}
+
+// Chess scoring constants
+const LLM_ELO = 1500;
+const K_FACTOR = 32;
+const XP_WIN = 25;
+const XP_DRAW = 10;
+const XP_LOSS = 5;
+
+function getStreakMultiplier(streak: number): number {
+  if (streak >= 7) return 2.0;
+  if (streak >= 5) return 1.5;
+  if (streak >= 3) return 1.2;
+  return 1.0;
+}
+
+function calculateEloChange(playerElo: number, opponentElo: number, score: number): number {
+  const expected = 1 / (1 + Math.pow(10, (opponentElo - playerElo) / 400));
+  return Math.round(K_FACTOR * (score - expected));
+}
+
+function calculateTier(totalScore: number): string {
+  if (totalScore > 12000) return '究极体';
+  if (totalScore > 8000) return '成熟期';
+  if (totalScore > 2000) return '成长期';
+  return '幼年期';
+}
+
+function getTodayDateString(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+function getYesterdayDateString(): string {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split('T')[0];
+}
 
 const SYSTEM_PROMPT = `You are a chess engine playing as Black. Your only job is to pick the best legal chess move.
 
@@ -77,10 +120,11 @@ function parseLLMResponse(raw: string): { move: string | null; thinking: string 
 }
 
 async function callARK(messages: Array<{ role: string; content: string }>): Promise<string> {
+  const { baseUrl, apiKey, modelId } = getArkConfig();
   const response = await axios.post(
-    `${ARK_BASE_URL}/chat/completions`,
+    `${baseUrl}/chat/completions`,
     {
-      model: ARK_MODEL_ID,
+      model: modelId,
       messages,
       stream: false,
       max_tokens: 300,
@@ -88,10 +132,11 @@ async function callARK(messages: Array<{ role: string; content: string }>): Prom
     },
     {
       headers: {
-        Authorization: `Bearer ${ARK_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       timeout: 30000,
+      proxy: false,
     }
   );
   return response.data.choices[0].message.content as string;
@@ -160,7 +205,7 @@ router.post('/move', authMiddleware, async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid FEN position' });
     }
 
-    if (!ARK_API_KEY) {
+    if (!getArkConfig().apiKey) {
       return res.status(500).json({ success: false, error: 'ARK API key not configured' });
     }
 
@@ -170,6 +215,112 @@ router.post('/move', authMiddleware, async (req, res) => {
   } catch (error: any) {
     console.error('Chess move error:', error);
     return res.status(500).json({ success: false, error: 'Failed to get LLM move' });
+  }
+});
+
+router.get('/stats', authMiddleware, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId! },
+      select: { chessElo: true, chessStreak: true, chessXpTotal: true, chessLastPlayedDate: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        elo: user.chessElo,
+        streak: user.chessStreak,
+        xpTotal: user.chessXpTotal,
+        lastPlayedDate: user.chessLastPlayedDate,
+      },
+    });
+  } catch (error) {
+    console.error('Chess stats error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to get chess stats' });
+  }
+});
+
+router.post('/result', authMiddleware, async (req, res) => {
+  try {
+    const { result } = req.body;
+
+    if (!['win', 'draw', 'loss'].includes(result)) {
+      return res.status(400).json({ success: false, error: 'result must be "win", "draw", or "loss"' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId! },
+      select: {
+        chessElo: true,
+        chessStreak: true,
+        chessLastPlayedDate: true,
+        chessXpTotal: true,
+        totalScore: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Calculate streak
+    const today = getTodayDateString();
+    const yesterday = getYesterdayDateString();
+    let newStreak = user.chessStreak;
+
+    if (user.chessLastPlayedDate === today) {
+      // Already played today — no streak change
+    } else if (user.chessLastPlayedDate === yesterday) {
+      newStreak += 1;
+    } else {
+      newStreak = 1;
+    }
+
+    const streakMultiplier = getStreakMultiplier(newStreak);
+
+    // Calculate ELO
+    const score = result === 'win' ? 1 : result === 'draw' ? 0.5 : 0;
+    const eloChange = calculateEloChange(user.chessElo, LLM_ELO, score);
+    const newElo = Math.max(0, user.chessElo + eloChange);
+
+    // Calculate XP
+    const baseXp = result === 'win' ? XP_WIN : result === 'draw' ? XP_DRAW : XP_LOSS;
+    const xpEarned = Math.floor(baseXp * streakMultiplier);
+
+    // Update user
+    const newTotalScore = user.totalScore + xpEarned;
+    const newTier = calculateTier(newTotalScore);
+
+    await prisma.user.update({
+      where: { id: req.userId! },
+      data: {
+        chessElo: newElo,
+        chessStreak: newStreak,
+        chessLastPlayedDate: today,
+        chessXpTotal: user.chessXpTotal + xpEarned,
+        totalScore: newTotalScore,
+        tier: newTier,
+      },
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        eloChange,
+        newElo,
+        xpEarned,
+        streak: newStreak,
+        streakMultiplier,
+        newTier,
+      },
+    });
+  } catch (error) {
+    console.error('Chess result error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to process chess result' });
   }
 });
 
