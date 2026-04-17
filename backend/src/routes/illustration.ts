@@ -30,7 +30,8 @@ function buildSystemPrompt(taskId: string): string {
 要求：
 - 只输出纯SVG代码，不要markdown代码块，不要任何解释文字
 - 开头必须是 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400">
-- 深色背景 (#1a1a2e)，使用浅色文字和高对比度线条
+- 背景透明（不要画背景矩形），装饰元素使用半透明暖色填充
+- 文字颜色使用 #1a1a1a（深色，确保在浅色背景上清晰可读），线条和边框使用 #ff3356 或 #9b72cf 等高对比度颜色
 - 图示风格：${style}
 - 保持简洁，突出核心概念，不要堆砌细节`;
 }

@@ -5,7 +5,7 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
   border: 1.5px solid var(--border);
-  background: #1a1a2e;
+  background: var(--bg3);
 }
 
 .illustration-panel svg {
@@ -43,7 +43,7 @@
   margin: -18px -18px 14px;
   overflow: hidden;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  background: #1a1a2e;
+  background: var(--bg3);
   border-bottom: 1.5px solid var(--border);
 }
 
