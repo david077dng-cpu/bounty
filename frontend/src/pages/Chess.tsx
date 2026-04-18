@@ -75,6 +75,13 @@ const Chess_Page: React.FC = () => {
   const [llmThinking, setLlmThinking] = useState(false);
   const [llmThought, setLlmThought] = useState('');
   const [error, setError] = useState('');
+  const [chessStats, setChessStats] = useState<{
+    elo: number; streak: number; xpTotal: number;
+  }>({ elo: 1200, streak: 0, xpTotal: 0 });
+  const [gameResult, setGameResult] = useState<{
+    eloChange: number; xpEarned: number; streak: number; streakMultiplier: number;
+  } | null>(null);
+  const [resultSubmitted, setResultSubmitted] = useState(false);
 
   // Redirect if not authenticated (must be in useEffect, not during render)
   useEffect(() => {
@@ -82,6 +89,17 @@ const Chess_Page: React.FC = () => {
       navigate('/login');
     }
   }, [authLoading, user, navigate]);
+
+  useEffect(() => {
+    if (user) {
+      chessApi.getStats().then(res => {
+        if (res.data.success && res.data.data) {
+          const { elo, streak, xpTotal } = res.data.data;
+          setChessStats({ elo, streak, xpTotal });
+        }
+      }).catch(() => {});
+    }
+  }, [user]);
 
   const buildHighlights = useCallback(
     (
@@ -250,12 +268,38 @@ const Chess_Page: React.FC = () => {
     setLlmThinking(false);
     setLlmThought('');
     setError('');
+    setGameResult(null);
+    setResultSubmitted(false);
   }, []);
 
   const resign = useCallback(() => {
     setGameStatus('checkmate-black');
     setLlmThought('');
   }, []);
+
+  const submitGameResult = useCallback(async (result: 'win' | 'draw' | 'loss') => {
+    if (resultSubmitted) return;
+    setResultSubmitted(true);
+    try {
+      const res = await chessApi.submitResult(result);
+      if (res.data.success && res.data.data) {
+        const { eloChange, newElo, xpEarned, streak, streakMultiplier } = res.data.data;
+        setGameResult({ eloChange, xpEarned, streak, streakMultiplier });
+        setChessStats({ elo: newElo, streak, xpTotal: chessStats.xpTotal + xpEarned });
+      }
+    } catch {
+      // Silently fail — game still works without scoring
+    }
+  }, [resultSubmitted, chessStats.xpTotal]);
+
+  useEffect(() => {
+    if (!isGameOver(gameStatus)) return;
+    let result: 'win' | 'draw' | 'loss';
+    if (gameStatus === 'checkmate-white') result = 'win';
+    else if (gameStatus === 'checkmate-black') result = 'loss';
+    else result = 'draw';
+    submitGameResult(result);
+  }, [gameStatus, submitGameResult]);
 
   if (authLoading) {
     return <div style={{ padding: 40, fontFamily: 'var(--mono)', color: 'var(--muted)' }}>Loading...</div>;
@@ -326,10 +370,49 @@ const Chess_Page: React.FC = () => {
 
         {/* Right: info panel */}
         <div className="chess-info-panel">
+          <div className="chess-rating-box">
+            <div className="panel-label">// CHESS RATING</div>
+            <div className="rating-stats">
+              <div className="rating-stat">
+                <span className="rating-stat-value">{chessStats.elo}</span>
+                <span className="rating-stat-label">ELO</span>
+              </div>
+              {chessStats.streak > 0 && (
+                <div className="rating-stat">
+                  <span className="rating-stat-value streak-value">
+                    {chessStats.streak}d
+                  </span>
+                  <span className="rating-stat-label">STREAK</span>
+                </div>
+              )}
+              <div className="rating-stat">
+                <span className="rating-stat-value">{chessStats.xpTotal}</span>
+                <span className="rating-stat-label">XP</span>
+              </div>
+            </div>
+          </div>
+
           {over && (
             <div className="chess-gameover-banner">
               <p className="gameover-title">{statusText(gameStatus, game.turn())}</p>
-              <p className="gameover-sub">Click "New Game" to play again</p>
+              {gameResult ? (
+                <div className="gameover-result">
+                  <span className={`elo-change ${gameResult.eloChange >= 0 ? 'elo-up' : 'elo-down'}`}>
+                    {gameResult.eloChange >= 0 ? '+' : ''}{gameResult.eloChange} ELO
+                  </span>
+                  <span className="xp-earned">
+                    +{gameResult.xpEarned} XP
+                    {gameResult.streakMultiplier > 1 && (
+                      <span className="streak-bonus"> ({gameResult.streakMultiplier}x streak)</span>
+                    )}
+                  </span>
+                  {gameResult.streak > 0 && (
+                    <span className="streak-info">{gameResult.streak}-day streak</span>
+                  )}
+                </div>
+              ) : (
+                <p className="gameover-sub">Click "New Game" to play again</p>
+              )}
             </div>
           )}
 
