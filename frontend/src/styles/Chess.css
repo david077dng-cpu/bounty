@@ -293,6 +293,89 @@
   margin: 0;
 }
 
+/* ─── Rating Panel ──────────────────────────── */
+
+.chess-rating-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 20px;
+}
+
+.rating-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.rating-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.rating-stat-value {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.streak-value {
+  color: var(--gold);
+}
+
+.rating-stat-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1.5px;
+}
+
+/* ─── Game-over result ──────────────────────── */
+
+.gameover-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  animation: floatUp 0.4s ease-out;
+}
+
+.elo-change {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.elo-up {
+  color: var(--cyan);
+}
+
+.elo-down {
+  color: var(--red);
+}
+
+.xp-earned {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.streak-bonus {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.streak-info {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+
 /* ─── Responsive ─────────────────────────────── */
 
 @media (max-width: 860px) {
