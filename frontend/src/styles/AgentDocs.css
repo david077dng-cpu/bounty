@@ -1,0 +1,128 @@
+.docs-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.docs-container {
+  display: flex;
+  gap: 40px;
+}
+
+.docs-sidebar {
+  width: 240px;
+  position: sticky;
+  top: 100px;
+  height: fit-content;
+}
+
+.docs-sidebar ul {
+  list-style: none;
+  padding: 0;
+  border-left: 1.5px solid var(--border);
+}
+
+.docs-sidebar li a {
+  display: block;
+  padding: 8px 20px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.docs-sidebar li a:hover {
+  color: var(--primary);
+  border-left: 2px solid var(--primary);
+  margin-left: -1.75px;
+}
+
+.docs-content {
+  flex: 1;
+  max-width: 800px;
+}
+
+.docs-content section {
+  margin-bottom: 60px;
+}
+
+.docs-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--text);
+}
+
+.docs-content h2 {
+  font-size: 1.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid var(--border);
+  color: var(--text);
+}
+
+.lead {
+  font-size: 1.2rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.code-block {
+  background: var(--bg3);
+  border-radius: var(--radius-md);
+  margin: 20px 0;
+  border: 1.5px solid var(--border);
+  overflow: hidden;
+}
+
+.code-header {
+  background: var(--bg2);
+  padding: 8px 16px;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.code-block pre {
+  padding: 16px;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--cyan);
+  overflow-x: auto;
+}
+
+.tool-card {
+  background: var(--bg3);
+  padding: 20px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.tool-card h4 {
+  margin: 0 0 10px 0;
+  color: var(--primary-light);
+  font-family: var(--mono);
+}
+
+.docs-link {
+  display: inline-block;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.docs-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .docs-container {
+    flex-direction: column;
+  }
+  .docs-sidebar {
+    display: none;
+  }
+}

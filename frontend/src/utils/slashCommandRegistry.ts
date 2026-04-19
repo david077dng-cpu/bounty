@@ -20,7 +20,7 @@ class SlashCommandRegistry {
     this.registerCommand({
       id: 'courses',
       name: 'courses',
-      description: '前往进化路线（课程）',
+      description: '前往主题路线（课程）',
       category: 'navigation',
       icon: '🧬',
     });
@@ -44,7 +44,7 @@ class SlashCommandRegistry {
     this.registerCommand({
       id: 'history',
       name: 'history',
-      description: '前往我的训练记录',
+      description: '前往我的互动记录',
       category: 'navigation',
       icon: '📜',
     });
@@ -68,12 +68,12 @@ class SlashCommandRegistry {
     this.registerCommand({
       id: 'system-prompt',
       name: 'system-prompt',
-      description: '插入数码宝贝系统提示模板',
+      description: '插入知识探索者系统提示模板',
       category: 'template',
       icon: '⚙️',
-      template: `你是一只正在成长的数码宝贝。你需要不断训练和学习来提升自己的能力。请按照以下步骤思考：
+      template: `你是一个热衷于知识探索的学习者。你需要通过不断的互动体验来升华自己的认知。请按照以下步骤思考：
 
-1. 理解训练目标
+1. 理解探索目标
 2. 调用需要的技能
 3. 总结学习收获
 `,
@@ -134,17 +134,17 @@ class SlashCommandRegistry {
       icon: '❓',
     });
 
-    // Digimon themed commands
+    // Knowledge themed commands
     this.registerCommand({
-      id: 'evolve',
-      name: 'evolve',
-      description: '插入进化寄语',
-      category: 'digimon',
+      id: 'explore',
+      name: 'explore',
+      description: '插入探索寄语',
+      category: 'knowledge',
       icon: '⭐',
       template: `---
-✨ 数码宝贝进化寄语：
+✨ 知识探索者寄语：
 
-> "只要不断训练和挑战，总有一天你会进化成最强的形态！每一次失败都是成长的养分。"
+> "只要不断探索和体验，总有一天你会领悟知识的真谛！每一次尝试都是认知升华的契机。"
 `,
     });
 
