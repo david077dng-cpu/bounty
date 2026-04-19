@@ -18,12 +18,13 @@ const STYLE_MAP: Record<string, string> = {
   L: '命题关系图或真值表',
   N: '公式推导流程图',
   C: '算法流程图',
+  CT: '思维导图或论证结构图',
   S: '概念示意图',
   E: '博弈矩阵或策略树',
 };
 
 function buildSystemPrompt(taskId: string): string {
-  const prefix = taskId[0].toUpperCase();
+  const prefix = taskId.startsWith('CT') ? 'CT' : taskId[0].toUpperCase();
   const style = STYLE_MAP[prefix] ?? '概念示意图';
   return `你是一个SVG图示专家。根据任务描述生成一张解释性插图。
 
@@ -92,6 +93,7 @@ router.get('/tasks/:id/illustration', async (req, res) => {
             'Content-Type': 'application/json',
           },
           timeout: 30000,
+          proxy: false,
         }
       );
 

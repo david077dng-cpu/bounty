@@ -45,10 +45,10 @@ const Leaderboard: React.FC = () => {
       <h2 style={{ marginBottom: 16 }}>🌟 排名榜</h2>
       <div className="lb-header">
         <div>#</div>
-        <div>训练师</div>
-        <div style={{ textAlign: 'right' }}>得分</div>
-        <div style={{ textAlign: 'right' }}>EXP</div>
-        <div style={{ textAlign: 'right' }}>训练</div>
+        <div>探索者</div>
+        <div style={{ textAlign: 'right' }}>总EXP</div>
+        <div style={{ textAlign: 'right' }}>互动</div>
+        <div style={{ textAlign: 'right' }}>总分</div>
       </div>
       <div>
         {leaderboard.map((entry, index) => (

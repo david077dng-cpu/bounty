@@ -668,7 +668,7 @@ const PrisonerDilemmaSimulation: React.FC = () => {
           className={`pd-tab ${activeTab === 'evolution' ? 'active' : ''}`}
           onClick={() => setActiveTab('evolution')}
         >
-          🧬 种群进化
+          🧬 种群演化
         </button>
       </div>
 
@@ -941,7 +941,7 @@ const PrisonerDilemmaSimulation: React.FC = () => {
               <div className="pd-control-row pd-evolution-buttons">
                 {!evoRunning && !evoFinished && (
                   <button className="pd-btn primary" onClick={startEvolution}>
-                    ▶ 开始进化
+                    ▶ 开始演化
                   </button>
                 )}
                 {evoRunning && (
