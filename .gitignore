@@ -99,6 +99,10 @@ temp/
 .cache/
 */.cache/
 
+# Git worktrees
+.worktrees/
+worktrees/
+
 # Lock files (uncomment if you don't want to commit them)
 # package-lock.json
 # yarn.lock
