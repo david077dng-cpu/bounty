@@ -123,6 +123,11 @@ router.get('/:id', async (req, res) => {
         refCreativity: task.refCreativity,
         refSpeed: task.refSpeed,
         authorId: task.authorId,
+        // Interactive fields
+        isInteractive: task.isInteractive,
+        interactionType: task.interactionType,
+        interactionConfig: task.interactionConfig ? JSON.parse(task.interactionConfig) : null,
+        rounds: task.rounds,
       },
     });
   } catch (error) {
