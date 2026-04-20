@@ -25,6 +25,8 @@
   /* Kept for semantic use (scores, categories) */
   --cyan: #00C9A7;
   --cyan-glow: rgba(0,201,167,0.22);
+  --green: #00d4aa;
+  --green-glow: rgba(0, 212, 170, 0.22);
   --purple: #9B72CF;
   --purple-glow: rgba(155,114,207,0.22);
   --blue: #4A9EFF;
