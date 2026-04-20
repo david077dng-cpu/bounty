@@ -108,53 +108,58 @@ const ProgressivePuzzle: React.FC<ProgressivePuzzleProps> = ({
       return;
     }
 
-    if (checkAnswer(userInput, currentStep.answerPattern)) {
-      // Correct answer
-      const newHistory = [...history, { step: currentStepIndex, answer: userInput }];
-      setHistory(newHistory);
+    try {
+      if (checkAnswer(userInput, currentStep.answerPattern)) {
+        // Correct answer
+        const newHistory = [...history, { step: currentStepIndex, answer: userInput }];
+        setHistory(newHistory);
 
-      if (currentStepIndex >= totalSteps - 1) {
-        // All steps completed
-        setCompleted(true);
-        // Compile all answers
-        const fullAnswer = "# 渐进解谜\n\n" + config.description + "\n\n" + newHistory
-          .map((h, i) => "## 第 " + (i + 1) + " 关\n问题: " + config.steps[i].question + "\n答案: " + h.answer + "\n")
-          .join("\n") + "\n## 最终答案\n" + userInput + "\n\n---\n" + config.finalRewardText;
+        if (currentStepIndex >= totalSteps - 1) {
+          // All steps completed
+          setCompleted(true);
+          // Compile all answers
+          const fullAnswer = "# 渐进解谜\n\n" + config.description + "\n\n" + newHistory
+            .map((h, i) => "## 第 " + (i + 1) + " 关\n问题: " + config.steps[i].question + "\n答案: " + h.answer + "\n")
+            .join("\n") + "\n## 最终答案\n" + userInput + "\n\n---\n" + config.finalRewardText;
 
-        // Save the final state and finish
-        if (sessionId) {
-          await interactionApi.step(task.id, sessionId, fullAnswer, {
-            currentStepIndex,
-            history: newHistory,
-            completed: true,
-          });
-          // Let backend handle final scoring
-          const finishRes = await interactionApi.finish(task.id, sessionId);
-          if (finishRes.data.success) {
-            onComplete(finishRes.data.fullAnswer, finishRes.data.submission.scores);
+          // Save the final state and finish
+          if (sessionId) {
+            await interactionApi.step(task.id, sessionId, fullAnswer, {
+              currentStepIndex,
+              history: newHistory,
+              completed: true,
+            });
+            // Let backend handle final scoring
+            const finishRes = await interactionApi.finish(task.id, sessionId);
+            if (finishRes.data.success) {
+              onComplete(finishRes.data.fullAnswer, finishRes.data.submission.scores);
+            }
+          } else {
+            // Fallback - use reference scores with random variation
+            const finalScores = {
+              accuracy: Math.min(100, Math.max(50, task.refAccuracy + Math.floor(Math.random() * 20) - 10)),
+              reasoning: Math.min(100, Math.max(50, task.refReasoning + Math.floor(Math.random() * 20) - 10)),
+              creativity: Math.min(100, Math.max(50, task.refCreativity + Math.floor(Math.random() * 20) - 10)),
+              speed: Math.min(100, Math.max(50, task.refSpeed + Math.floor(Math.random() * 20) - 10)),
+            };
+            onComplete(fullAnswer, finalScores);
           }
         } else {
-          // Fallback - use reference scores with random variation
-          const finalScores = {
-            accuracy: Math.min(100, Math.max(50, task.refAccuracy + Math.floor(Math.random() * 20) - 10)),
-            reasoning: Math.min(100, Math.max(50, task.refReasoning + Math.floor(Math.random() * 20) - 10)),
-            creativity: Math.min(100, Math.max(50, task.refCreativity + Math.floor(Math.random() * 20) - 10)),
-            speed: Math.min(100, Math.max(50, task.refSpeed + Math.floor(Math.random() * 20) - 10)),
-          };
-          onComplete(fullAnswer, finalScores);
+          // Move to next step
+          setTimeout(() => {
+            setCurrentStepIndex(prev => prev + 1);
+            setUserInput('');
+            setShowHint(false);
+            saveCurrentState();
+          }, 500);
         }
       } else {
-        // Move to next step
-        setTimeout(() => {
-          setCurrentStepIndex(prev => prev + 1);
-          setUserInput('');
-          setShowHint(false);
-          saveCurrentState();
-        }, 500);
+        // Incorrect answer
+        setError('答案不正确，请再试一次。');
       }
-    } else {
-      // Incorrect answer
-      setError('答案不正确，请再试一次。');
+    } catch (err) {
+      console.error('Submit error:', err);
+      setError('提交失败，请重试。');
     }
   };
 
@@ -166,15 +171,22 @@ const ProgressivePuzzle: React.FC<ProgressivePuzzleProps> = ({
 
   const handleReset = async () => {
     if (!confirm('确定要重置谜题吗？所有进度将被重置。')) return;
-    const res = await interactionApi.reset(task.id);
-    if (res.data.success) {
-      setSessionId(res.data.sessionId);
-      setCurrentStepIndex(0);
-      setHistory([]);
-      setUserInput('');
-      setCompleted(false);
-      setError('');
-      setShowHint(false);
+    try {
+      const res = await interactionApi.reset(task.id);
+      if (res.data.success) {
+        setSessionId(res.data.sessionId);
+        setCurrentStepIndex(0);
+        setHistory([]);
+        setUserInput('');
+        setCompleted(false);
+        setError('');
+        setShowHint(false);
+      } else {
+        throw new Error('Reset failed');
+      }
+    } catch (err) {
+      console.error('Reset error:', err);
+      setError('重置失败，请重试。');
     }
   };
 
