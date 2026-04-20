@@ -7,6 +7,7 @@ import SlashCommandPopup from '../components/SlashCommandPopup';
 import PrisonerDilemmaSimulation from '../components/PrisonerDilemmaSimulation';
 import TurnBasedInteractive from '../components/TurnBasedInteractive';
 import ProgressivePuzzle from '../components/ProgressivePuzzle';
+import StructuredQuiz from '../components/StructuredQuiz';
 import SocialPanel from '../components/SocialPanel';
 import IllustrationPanel from '../components/IllustrationPanel';
 import { slashCommandRegistry } from '../utils/slashCommandRegistry';
@@ -706,6 +707,19 @@ const Arena: React.FC = () => {
         {/* Simulation type - for game theory simulations and similar interactive modules */}
         {task.isInteractive && task.interactionType === 'simulation' && (
           <PrisonerDilemmaSimulation />
+        )}
+
+        {/* Structured Quiz - single/multiple choice, fill-in-the-blank */}
+        {task.isInteractive && task.interactionType === 'structured' && (
+          <StructuredQuiz
+            task={task}
+            onComplete={(finalAnswer, scores) => {
+              setUserAnswer(finalAnswer);
+              setCurrentScores(scores);
+              setInteractiveCompleted(true);
+              calculateAndShowResult(scores);
+            }}
+          />
         )}
 
         {/* Game type - for custom interactive games (can be implemented later) */}
