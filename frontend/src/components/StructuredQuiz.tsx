@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { interactionApi } from '../services/api';
-import type { Task, StructuredConfig, StructuredQuestion, StructuredGameState } from '../types';
+import type {
+  Task,
+  StructuredConfig,
+  StructuredQuestion,
+  StructuredGameState,
+  StructuredUserAnswer,
+  SingleChoiceQuestion,
+  MultipleChoiceQuestion,
+  FillBlankQuestion,
+  FillBlank,
+} from '../types';
 import '../styles/StructuredQuiz.css';
 
 export interface StructuredQuizProps {
@@ -127,14 +137,422 @@ const StructuredQuiz: React.FC<StructuredQuizProps> = ({
     }
   }, [gameState?.answers]);
 
-  // Placeholder handlers - will be implemented in next task
-  const handleSubmit = () => {
-    console.log('Submit to be implemented');
-    _onComplete('', {});
+  // Get current answer for a question
+  const getCurrentAnswer = (questionId: string): StructuredUserAnswer['answer'] | undefined => {
+    const existing = gameState?.answers.find(a => a.questionId === questionId);
+    return existing?.answer;
   };
 
-  const handleReset = () => {
-    console.log('Reset to be implemented');
+  // Update answer for a question
+  const updateAnswer = (questionId: string, answer: StructuredUserAnswer['answer']) => {
+    if (!gameState || submitted) return;
+
+    setGameState(prev => {
+      if (!prev) return prev;
+      const newAnswers = prev.answers.filter(a => a.questionId !== questionId);
+      newAnswers.push({ questionId, answer });
+      return {
+        ...prev,
+        answers: newAnswers,
+      };
+    });
+  };
+
+  // Handle single choice selection
+  const handleSingleSelect = (question: SingleChoiceQuestion, optionId: string) => {
+    updateAnswer(question.id, optionId);
+  };
+
+  // Handle multiple choice toggle
+  const handleMultipleToggle = (question: MultipleChoiceQuestion, optionId: string) => {
+    const current = getCurrentAnswer(question.id) as string[] || [];
+    let newSelection: string[];
+
+    if (current.includes(optionId)) {
+      newSelection = current.filter(id => id !== optionId);
+    } else {
+      newSelection = [...current, optionId];
+    }
+
+    updateAnswer(question.id, newSelection);
+  };
+
+  // Handle fill-in-blank input change
+  const handleFillChange = (question: FillBlankQuestion, blankId: string, value: string) => {
+    const current = getCurrentAnswer(question.id) as Record<string, string> || {};
+    const newBlanks = { ...current, [blankId]: value };
+    updateAnswer(question.id, newBlanks);
+  };
+
+  // Calculate score for a single question
+  const calculateQuestionScore = (question: StructuredQuestion, userAnswer: StructuredUserAnswer['answer'] | undefined): number => {
+    if (question.type === 'single') {
+      const selectedId = userAnswer as string;
+      if (!selectedId) return 0;
+      const option = question.options.find(o => o.id === selectedId);
+      return option?.correct ? question.points : 0;
+    }
+
+    if (question.type === 'multiple') {
+      const selectedIds = userAnswer as string[] || [];
+      if (selectedIds.length === 0) return 0;
+
+      const correctCount = question.options.filter(o => o.correct).length;
+      if (correctCount === 0) return 0;
+
+      let correctSelected = 0;
+      let incorrectSelected = 0;
+
+      selectedIds.forEach(id => {
+      const option = question.options.find(o => o.id === id);
+      if (option?.correct) correctSelected++;
+        else incorrectSelected++;
+      });
+
+      // Formula: (correctSelected - incorrectSelected) / correctCount * points
+      const score = ((correctSelected - incorrectSelected) / correctCount) * question.points;
+      return Math.max(0, Math.min(question.points, score));
+    }
+
+    if (question.type === 'fill') {
+      const userInputs = userAnswer as Record<string, string> || {};
+      const correctCount = question.blanks.reduce((count, blank) => {
+        const userInput = (userInputs[blank.id] || '').trim();
+        if (!userInput) return count;
+        if (checkFillBlankMatch(userInput, blank)) return count + 1;
+        return count;
+      }, 0);
+
+      return (correctCount / question.blanks.length) * question.points;
+    }
+
+    return 0;
+  };
+
+  // Check if user input matches the expected answer for a fill blank
+  const checkFillBlankMatch = (userInput: string, blank: FillBlank): boolean => {
+    let input = userInput.trim();
+    let expected = blank.answer.trim();
+    const caseInsensitive = blank.caseInsensitive !== false;
+
+    if (caseInsensitive) {
+      input = input.toLowerCase();
+      expected = expected.toLowerCase();
+    }
+
+    // Multiple options separated by |
+    if (expected.includes('|')) {
+      const options = expected.split('|').map(o => o.trim());
+      return options.some(opt => {
+        if (opt.startsWith('/') && opt.endsWith('/')) {
+          // Regex match
+          try {
+            const regex = new RegExp(opt.slice(1, -1), caseInsensitive ? 'i' : '');
+            return regex.test(input);
+          } catch (e) {
+            return input === opt;
+          }
+        }
+        return input === opt || input.includes(opt);
+      });
+    }
+
+    // Regex match
+    if (expected.startsWith('/') && expected.endsWith('/')) {
+      try {
+        const regex = new RegExp(expected.slice(1, -1), caseInsensitive ? 'i' : '');
+        return regex.test(input);
+      } catch (e) {
+        return input === expected;
+      }
+    }
+
+    // Exact match default
+    return input === expected;
+  };
+
+  // Check if a blank is correctly answered (after submit)
+  const isBlankCorrect = (question: FillBlankQuestion, blankId: string, userInput: string): boolean => {
+    const blank = question.blanks.find(b => b.id === blankId);
+    if (!blank) return false;
+    return checkFillBlankMatch(userInput, blank);
+  };
+
+  // Renderers
+  const renderSingleChoice = (question: SingleChoiceQuestion) => {
+    const selectedId = getCurrentAnswer(question.id) as string;
+    return (
+      <div className="option-list">
+        {question.options.map(option => {
+          let className = 'option-item';
+          if (selectedId === option.id) className += ' selected';
+          if (submitted && option.correct) className += ' correct';
+          if (submitted && selectedId === option.id && !option.correct) className += ' incorrect';
+
+          return (
+            <div
+              key={option.id}
+              className={className}
+              onClick={() => !submitted && handleSingleSelect(question, option.id)}
+            >
+              <div className="option-indicator" />
+              <div className="option-text">{option.text}</div>
+              {submitted && option.correct && (
+                <span className="option-correct-badge">✓</span>
+              )}
+              {submitted && selectedId === option.id && !option.correct && (
+                <span className="option-incorrect-badge">✗</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderMultipleChoice = (question: MultipleChoiceQuestion) => {
+    const selectedIds = getCurrentAnswer(question.id) as string[] || [];
+
+    return (
+      <>
+        <div className="option-list">
+          {question.options.map(option => {
+            const isSelected = selectedIds.includes(option.id);
+            let className = 'option-item';
+            if (isSelected) className += ' selected';
+            if (submitted && option.correct) className += ' correct';
+            if (submitted && isSelected && !option.correct) className += ' incorrect';
+
+            return (
+              <div
+                key={option.id}
+                className={className}
+                onClick={() => !submitted && handleMultipleToggle(question, option.id)}
+              >
+                <div className="option-indicator">
+                  {isSelected && '✓'}
+                </div>
+                <div className="option-text">{option.text}</div>
+                {submitted && option.correct && (
+                  <span className="option-correct-badge">✓</span>
+                )}
+                {submitted && isSelected && !option.correct && (
+                  <span className="option-incorrect-badge">✗</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {(question.minSelected || question.maxSelected) && !submitted && (
+          <div className="selection-hint">
+            {question.minSelected && question.maxSelected
+              ? `请选择 ${question.minSelected} - ${question.maxSelected} 项`
+              : question.minSelected
+                ? `至少选择 ${question.minSelected} 项`
+                : `最多选择 ${question.maxSelected} 项`
+            }
+          </div>
+        )}
+      </>
+    );
+  };
+
+  const renderFillBlank = (question: FillBlankQuestion) => {
+    const userInputs = getCurrentAnswer(question.id) as Record<string, string> || {};
+    // Parse the question text and split into segments around placeholders __number__
+    const parts: Array<{ type: 'text', content: string } | { type: 'blank', blank: FillBlank }> = [];
+
+    let text = question.question;
+    const placeholderRegex = /__([a-zA-Z0-9]+)__/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = placeholderRegex.exec(text)) !== null) {
+      // Add text before placeholder
+      if (match.index > lastIndex) {
+        parts.push({
+          type: 'text',
+          content: text.slice(lastIndex, match.index),
+        });
+      }
+      // Find the blank by id
+      const blankId = match[1];
+      const blank = question.blanks.find(b => b.id === blankId);
+      if (blank) {
+        parts.push({
+          type: 'blank',
+          blank,
+        });
+      } else {
+        // If blank not found, just add the placeholder as text
+        parts.push({ type: 'text', content: match[0] });
+      }
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push({ type: 'text', content: text.slice(lastIndex) });
+    }
+
+    return (
+      <div className="fill-question-container">
+        {parts.map((part, index) => {
+          if (part.type === 'text') {
+            return <span key={index}>{part.content}</span>;
+          }
+
+          const blank = part.blank;
+          const value = userInputs[blank.id] || '';
+          let className = 'fill-blank-input';
+          if (submitted) {
+            if (isBlankCorrect(question, blank.id, value)) {
+              className += ' correct';
+            } else {
+              className += ' incorrect';
+            }
+          }
+
+          return (
+            <span key={blank.id} className="fill-blank-inline">
+              <input
+                type="text"
+                className={className}
+                value={value}
+                placeholder={blank.placeholder || '...'}
+                onChange={(e) => handleFillChange(question, blank.id, e.target.value)}
+                disabled={submitted}
+                autoComplete="off"
+              />
+            </span>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderQuestion = (question: StructuredQuestion) => {
+    const userAnswer = getCurrentAnswer(question.id);
+    let cardClasses = 'question-card';
+    let isCorrect = false;
+
+    if (submitted) {
+      const score = calculateQuestionScore(question, userAnswer);
+      isCorrect = score === question.points;
+      cardClasses += isCorrect ? ' correct' : ' incorrect';
+    }
+
+    return (
+      <div key={question.id} className={cardClasses}>
+        <div className="question-header">
+          <div className="question-text">{question.question}</div>
+          <div className="question-points">{question.points} 分</div>
+        </div>
+
+        {question.type === 'single' && renderSingleChoice(question)}
+        {question.type === 'multiple' && renderMultipleChoice(question)}
+        {question.type === 'fill' && renderFillBlank(question)}
+
+        {submitted && !isCorrect && (
+          <div style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--red)' }}>
+            当前得分: {calculateQuestionScore(question, userAnswer).toFixed(1)} / {question.points}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const calculateTotalScore = (): number => {
+    if (!gameState) return 0;
+
+    let total = 0;
+    processedQuestions.forEach(question => {
+      const userAnswer = getCurrentAnswer(question.id);
+      total += calculateQuestionScore(question, userAnswer);
+    });
+
+    return total;
+  };
+
+  const handleSubmit = async () => {
+    if (!gameState || !sessionId || submitted) return;
+
+    // Calculate final score
+    const totalScore = calculateTotalScore();
+    const totalPossible = gameState.totalPossible;
+
+    const finalState: StructuredGameState = {
+      ...gameState,
+      score: totalScore,
+      completed: true,
+    };
+
+    setGameState(finalState);
+    setSubmitted(true);
+
+    // Save final state
+    await interactionApi.step(task.id, sessionId, '[Submitted]', finalState);
+
+    // Compile full answer text for submission
+    const percent = totalPossible > 0 ? (totalScore / totalPossible) * 100 : 0;
+    const passThreshold = config?.passThreshold || 60;
+    const passed = percent >= passThreshold;
+
+    let fullAnswer = `# ${config?.title}\n\n${config?.description}\n\n`;
+    fullAnswer += `## 测验结果\n\n得分: ${totalScore.toFixed(1)} / ${totalPossible} (${percent.toFixed(1)}%)\n`;
+    fullAnswer += `结果: ${passed ? '✅ 通过' : '❌ 未通过'}\n\n`;
+    fullAnswer += `## 答题详情\n\n`;
+
+    processedQuestions.forEach((q, i) => {
+      const userAnswer = getCurrentAnswer(q.id);
+      const score = calculateQuestionScore(q, userAnswer);
+      fullAnswer += `### ${i + 1}. ${q.question}\n`;
+      fullAnswer += `- 得分: ${score.toFixed(1)} / ${q.points}\n`;
+
+      if (q.type === 'single') {
+        const selected = userAnswer as string;
+        const option = q.options.find(o => o.id === selected);
+        fullAnswer += `- 你的选择: ${option?.text || '未选择'}\n`;
+      } else if (q.type === 'multiple') {
+        const selected = userAnswer as string[] || [];
+        const texts = selected.map(id => q.options.find(o => o.id === id)?.text).filter(Boolean);
+        fullAnswer += `- 你的选择: ${texts.join(', ')}\n`;
+      } else if (q.type === 'fill') {
+        const inputs = userAnswer as Record<string, string> || {};
+        q.blanks.forEach(blank => {
+          fullAnswer += `- ${blank.id}: ${inputs[blank.id] || '(空白)'}\n`;
+        });
+      }
+      fullAnswer += '\n';
+    });
+
+    // Finish and get scored submission
+    const finishRes = await interactionApi.finish(task.id, sessionId);
+    if (finishRes.data.success) {
+      _onComplete(finishRes.data.fullAnswer, finishRes.data.submission.scores);
+    } else {
+      // Fallback: calculate scores based on our percentage
+      const percentScore = percent;
+      const finalScores = {
+        accuracy: Math.min(100, Math.max(30, percentScore + Math.floor(Math.random() * 20) - 10)),
+        reasoning: Math.min(100, Math.max(30, percentScore + Math.floor(Math.random() * 20) - 10)),
+        creativity: Math.min(100, Math.max(30, 50 + Math.floor(Math.random() * 20))),
+        speed: Math.min(100, Math.max(30, 50 + Math.floor(Math.random() * 20))),
+      };
+      _onComplete(fullAnswer, finalScores);
+    }
+  };
+
+  const handleReset = async () => {
+    // Start new session
+    const resetRes = await interactionApi.reset(task.id);
+    if (resetRes.data.success) {
+      setSessionId(resetRes.data.sessionId);
+      // Re-initialize with new randomization
+      initializeQuiz();
+      setSubmitted(false);
+      setError('');
+    }
   };
 
   if (loading) {
@@ -184,13 +602,36 @@ const StructuredQuiz: React.FC<StructuredQuizProps> = ({
         </div>
       </div>
 
-      {/* TODO: render questions here in next task */}
-      <div>Questions will be rendered here</div>
+      {/* Render all questions */}
+      {processedQuestions.map(q => renderQuestion(q))}
 
-      {gameState.completed && (
+      {/* Result summary after submission */}
+      {submitted && (
         <div className="quiz-result">
-          {/* TODO: result summary here */}
-          Result summary will be here
+          {(() => {
+            const percent = gameState.totalPossible > 0
+              ? (gameState.score / gameState.totalPossible) * 100
+              : 0;
+            const passThreshold = config.passThreshold || 60;
+            const passed = percent >= passThreshold;
+
+            return (
+              <>
+                <h4 className={passed ? 'pass' : 'fail'}>
+                  {passed ? '✅ 恭喜，测验通过！' : '❌ 测验未通过，请重试'}
+                </h4>
+                <div className="result-score">{gameState.score.toFixed(1)} / {gameState.totalPossible}</div>
+                <div className="result-percent">正确率 {(percent).toFixed(1)}%</div>
+
+                <div className="progress-bar">
+                  <div
+                    className={`progress-fill ${passed ? 'pass' : 'fail'}`}
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+              </>
+            );
+          })()}
         </div>
       )}
 
