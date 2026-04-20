@@ -1,5 +1,5 @@
 .structured-quiz {
-  background: var(--surface);
+  background: var(--bg2);
   border-radius: 12px;
   padding: 20px;
   border: 1px solid var(--border);
@@ -13,11 +13,11 @@
 .quiz-header h3 {
   margin: 0 0 8px 0;
   font-size: 1.3rem;
-  color: var(--foreground);
+  color: var(--text);
 }
 
 .quiz-description {
-  color: var(--muted-foreground);
+  color: var(--text2);
   font-size: 0.95rem;
   line-height: 1.5;
   margin: 0;
@@ -54,14 +54,14 @@
 
 .progress-text {
   font-size: 0.9rem;
-  color: var(--muted-foreground);
+  color: var(--text2);
   min-width: 70px;
   text-align: right;
 }
 
 /* Question container */
 .question-card {
-  background: var(--surface-alt);
+  background: var(--bg3);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
@@ -88,14 +88,14 @@
 
 .question-text {
   font-weight: 500;
-  color: var(--foreground);
+  color: var(--text);
   line-height: 1.5;
   flex: 1;
 }
 
 .question-points {
   font-size: 0.8rem;
-  color: var(--muted-foreground);
+  color: var(--text2);
   background: var(--muted);
   padding: 2px 8px;
   border-radius: 4px;
@@ -117,7 +117,7 @@
   padding: 10px 12px;
   border-radius: 6px;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: var(--bg2);
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -144,14 +144,14 @@
 .option-indicator {
   width: 20px;
   height: 20px;
-  border: 2px solid var(--muted-foreground);
+  border: 2px solid var(--text2);
   border-radius: 4px;
   margin-right: 12px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--background);
+  color: var(--bg);
   font-size: 12px;
 }
 
@@ -175,7 +175,7 @@
 
 .option-text {
   flex: 1;
-  color: var(--foreground);
+  color: var(--text);
   line-height: 1.4;
 }
 
@@ -208,8 +208,8 @@
   padding: 4px 8px;
   border: 1px solid var(--border);
   border-radius: 4px;
-  background: var(--surface);
-  color: var(--foreground);
+  background: var(--bg2);
+  color: var(--text);
   font-size: 0.95rem;
   text-align: center;
   outline: none;
@@ -233,7 +233,7 @@
 /* Selection hints for multiple choice */
 .selection-hint {
   font-size: 0.8rem;
-  color: var(--muted-foreground);
+  color: var(--text2);
   margin-top: 4px;
   padding-left: 4px;
 }
@@ -242,7 +242,7 @@
 .quiz-result {
   margin-top: 24px;
   padding: 20px;
-  background: var(--surface-alt);
+  background: var(--bg3);
   border-radius: 8px;
   text-align: center;
 }
@@ -267,7 +267,7 @@
 }
 
 .result-percent {
-  color: var(--muted-foreground);
+  color: var(--text2);
   margin-bottom: 16px;
 }
 
@@ -304,7 +304,7 @@
 
 .btn-quiz-secondary {
   background: var(--muted);
-  color: var(--foreground);
+  color: var(--text);
 }
 
 .btn-quiz-secondary:hover:not(:disabled) {

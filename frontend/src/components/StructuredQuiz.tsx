@@ -10,10 +10,8 @@ export interface StructuredQuizProps {
 
 const StructuredQuiz: React.FC<StructuredQuizProps> = ({
   task,
-  onComplete,
+  onComplete: _onComplete,
 }) => {
-  // Keep TypeScript happy
-  void onComplete;
   const [loading, setLoading] = useState(true);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [config, setConfig] = useState<StructuredConfig | null>(null);
@@ -132,6 +130,7 @@ const StructuredQuiz: React.FC<StructuredQuizProps> = ({
   // Placeholder handlers - will be implemented in next task
   const handleSubmit = () => {
     console.log('Submit to be implemented');
+    _onComplete('', {});
   };
 
   const handleReset = () => {
