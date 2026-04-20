@@ -194,3 +194,71 @@ export interface InteractionFinishResponse {
   };
   fullAnswer: string;
 }
+
+// --- Structured Quiz Interaction Types ---
+
+export interface StructuredQuestionBase {
+  id: string;
+  type: 'single' | 'multiple' | 'fill';
+  question: string;
+  points: number;
+}
+
+export interface SingleChoiceOption {
+  id: string;
+  text: string;
+  correct: boolean;
+}
+
+export interface SingleChoiceQuestion extends StructuredQuestionBase {
+  type: 'single';
+  options: SingleChoiceOption[];
+}
+
+export interface MultipleChoiceQuestion extends StructuredQuestionBase {
+  type: 'multiple';
+  options: SingleChoiceOption[];
+  minSelected?: number;
+  maxSelected?: number;
+}
+
+export interface FillBlank {
+  id: string;
+  answer: string;
+  placeholder?: string;
+  caseInsensitive?: boolean;
+}
+
+export interface FillBlankQuestion extends StructuredQuestionBase {
+  type: 'fill';
+  question: string;
+  blanks: FillBlank[];
+}
+
+export type StructuredQuestion = SingleChoiceQuestion | MultipleChoiceQuestion | FillBlankQuestion;
+
+export interface StructuredConfig {
+  title: string;
+  description: string;
+  questions: StructuredQuestion[];
+  randomizeQuestions?: boolean;
+  randomizeOptions?: boolean;
+  selectN?: number;
+  passThreshold?: number;
+}
+
+export interface StructuredUserAnswer {
+  questionId: string;
+  // single: selected option id
+  // multiple: array of selected option ids
+  // fill: map blank id -> user input
+  answer: string | string[] | Record<string, string>;
+}
+
+export interface StructuredGameState {
+  answers: StructuredUserAnswer[];
+  completed: boolean;
+  score: number;
+  totalPossible: number;
+  questionOrder: string[]; // stores randomized question order for consistency
+}
