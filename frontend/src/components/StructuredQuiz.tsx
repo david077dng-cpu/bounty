@@ -271,6 +271,11 @@ const StructuredQuiz: React.FC<StructuredQuizProps> = ({
     return input === expected;
   };
 
+  // Check if answer is correct (after submit)
+  const isQuestionCorrect = (question: StructuredQuestion, userAnswer: StructuredUserAnswer['answer']): boolean => {
+    return calculateQuestionScore(question, userAnswer) === question.points;
+  };
+
   // Check if a blank is correctly answered (after submit)
   const isBlankCorrect = (question: FillBlankQuestion, blankId: string, userInput: string): boolean => {
     const blank = question.blanks.find(b => b.id === blankId);
@@ -437,8 +442,7 @@ const StructuredQuiz: React.FC<StructuredQuizProps> = ({
     let isCorrect = false;
 
     if (submitted) {
-      const score = calculateQuestionScore(question, userAnswer);
-      isCorrect = score === question.points;
+      isCorrect = userAnswer ? isQuestionCorrect(question, userAnswer) : false;
       cardClasses += isCorrect ? ' correct' : ' incorrect';
     }
 
