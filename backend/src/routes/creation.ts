@@ -66,6 +66,10 @@ router.post('/task', authMiddleware, async (req, res) => {
       refSpeed,
       steps,
       isPublic,
+      isInteractive,
+      interactionType,
+      interactionConfig,
+      rounds,
     } = req.body;
 
     if (!id || !name || !tier || !bounty || !categoryId || !catIcon || !question || !answer) {
@@ -96,6 +100,10 @@ router.post('/task', authMiddleware, async (req, res) => {
         steps: JSON.stringify(steps || []),
         authorId: userId,
         isPublic: isPublic !== false,
+        isInteractive: isInteractive === true,
+        interactionType: interactionType || null,
+        interactionConfig: interactionConfig ? JSON.stringify(interactionConfig) : null,
+        rounds: rounds ? parseInt(rounds) : null,
       },
     });
 
@@ -122,24 +130,34 @@ router.put('/task/:id', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'Not authorized' });
     }
 
+    const updateData: any = {
+      name: data.name,
+      tier: data.tier,
+      bounty: data.bounty ? parseInt(data.bounty) : undefined,
+      categoryId: data.categoryId ? parseInt(data.categoryId) : undefined,
+      catIcon: data.catIcon,
+      question: data.question,
+      hint: data.hint || null,
+      answer: data.answer,
+      refAccuracy: data.refAccuracy ? parseInt(data.refAccuracy) : undefined,
+      refReasoning: data.refReasoning ? parseInt(data.refReasoning) : undefined,
+      refCreativity: data.refCreativity ? parseInt(data.refCreativity) : undefined,
+      refSpeed: data.refSpeed ? parseInt(data.refSpeed) : undefined,
+      steps: data.steps ? JSON.stringify(data.steps) : undefined,
+      isPublic: data.isPublic,
+    };
+
+    // Add interactive fields if provided
+    if ('interactiveType' in data) {
+      updateData.interactiveType = data.interactiveType || null;
+    }
+    if ('interactiveConfig' in data && data.interactiveConfig !== undefined) {
+      updateData.interactiveConfig = data.interactiveConfig ? JSON.stringify(data.interactiveConfig) : null;
+    }
+
     const task = await prisma.task.update({
       where: { id },
-      data: {
-        name: data.name,
-        tier: data.tier,
-        bounty: data.bounty ? parseInt(data.bounty) : undefined,
-        categoryId: data.categoryId ? parseInt(data.categoryId) : undefined,
-        catIcon: data.catIcon,
-        question: data.question,
-        hint: data.hint || null,
-        answer: data.answer,
-        refAccuracy: data.refAccuracy ? parseInt(data.refAccuracy) : undefined,
-        refReasoning: data.refReasoning ? parseInt(data.refReasoning) : undefined,
-        refCreativity: data.refCreativity ? parseInt(data.refCreativity) : undefined,
-        refSpeed: data.refSpeed ? parseInt(data.refSpeed) : undefined,
-        steps: data.steps ? JSON.stringify(data.steps) : undefined,
-        isPublic: data.isPublic,
-      },
+      data: updateData,
     });
 
     res.json({ success: true, task });
@@ -272,6 +290,7 @@ ${truncatedText}
           'Content-Type': 'application/json',
         },
         timeout: 60000,
+        proxy: false,
       }
     );
 

@@ -36,10 +36,10 @@ function calculateEloChange(playerElo: number, opponentElo: number, score: numbe
 }
 
 function calculateTier(totalScore: number): string {
-  if (totalScore > 12000) return '究极体';
-  if (totalScore > 8000) return '成熟期';
-  if (totalScore > 2000) return '成长期';
-  return '幼年期';
+  if (totalScore > 12000) return 'Master';
+  if (totalScore > 8000) return 'Expert';
+  if (totalScore > 2000) return 'Apprentice';
+  return 'Novice';
 }
 
 function getTodayDateString(): string {

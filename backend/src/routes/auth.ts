@@ -1,11 +1,47 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 import { generateToken } from '../utils/jwt';
 import { authMiddleware } from '../middleware/auth';
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+// ... existing code ...
+
+// Get API key
+router.get('/api-key', authMiddleware, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId! },
+      select: { apiKey: true },
+    });
+    
+    res.json({ success: true, apiKey: user?.apiKey });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Generate new API key
+router.post('/api-key/generate', authMiddleware, async (req, res) => {
+  try {
+    const newApiKey = `sb_${crypto.randomBytes(24).toString('hex')}`;
+    
+    await prisma.user.update({
+      where: { id: req.userId! },
+      data: { apiKey: newApiKey },
+    });
+    
+    res.json({ success: true, apiKey: newApiKey });
+  } catch (error) {
+    console.error('API key generation error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+export default router;
 
 // Register
 router.post('/register', async (req, res) => {

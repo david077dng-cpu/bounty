@@ -59,10 +59,25 @@ router.post('/', authMiddleware, async (req, res) => {
 
     const task = await prisma.task.findUnique({
       where: { id: taskId },
+      include: { category: true }
     });
 
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
+    }
+
+    // Get weights based on category
+    let weights = { accuracy: 0.25, reasoning: 0.25, creativity: 0.25, speed: 0.25 };
+    const catName = task.category.name;
+    
+    if (['悬疑推理', '逻辑能力', '批判性思维'].includes(catName)) {
+      weights = { accuracy: 0.3, reasoning: 0.5, creativity: 0.1, speed: 0.1 };
+    } else if (['综合联想'].includes(catName)) {
+      weights = { accuracy: 0.2, reasoning: 0.2, creativity: 0.5, speed: 0.1 };
+    } else if (['代码能力', '数学基础'].includes(catName)) {
+      weights = { accuracy: 0.4, reasoning: 0.4, creativity: 0.0, speed: 0.2 };
+    } else if (['自然科学', '心理学效应', '进化博弈'].includes(catName)) {
+      weights = { accuracy: 0.3, reasoning: 0.3, creativity: 0.2, speed: 0.2 };
     }
 
     // Calculate total score
@@ -86,16 +101,31 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 
     const totalScore = Math.round(
-      (finalScores.accuracy + finalScores.reasoning + finalScores.creativity + finalScores.speed) / 4
+      (finalScores.accuracy * weights.accuracy) + 
+      (finalScores.reasoning * weights.reasoning) + 
+      (finalScores.creativity * weights.creativity) + 
+      (finalScores.speed * weights.speed)
     );
 
     // Calculate grade
     let grade;
-    if (totalScore >= 90) grade = 'S';
-    else if (totalScore >= 80) grade = 'A';
-    else if (totalScore >= 70) grade = 'B';
-    else if (totalScore >= 60) grade = 'C';
-    else grade = 'D';
+    let gradeMultiplier = 1.0;
+    if (totalScore >= 90) {
+      grade = 'S';
+      gradeMultiplier = 1.2;
+    } else if (totalScore >= 80) {
+      grade = 'A';
+      gradeMultiplier = 1.1;
+    } else if (totalScore >= 70) {
+      grade = 'B';
+      gradeMultiplier = 1.0;
+    } else if (totalScore >= 60) {
+      grade = 'C';
+      gradeMultiplier = 0.8;
+    } else {
+      grade = 'D';
+      gradeMultiplier = 0.5;
+    }
 
     const bountyEarned = task.bounty;
 
@@ -124,16 +154,23 @@ router.post('/', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const newTotalScore = user.totalScore + totalScore * 12 + bountyEarned;
+    // Dynamic multiplier based on tier
+    let tierMultiplier = 12;
+    if (task.tier === 'easy') tierMultiplier = 10;
+    else if (task.tier === 'medium') tierMultiplier = 15;
+    else if (task.tier === 'hard') tierMultiplier = 20;
+
+    const scoreContribution = Math.round(totalScore * tierMultiplier * gradeMultiplier);
+    const newTotalScore = user.totalScore + scoreContribution + bountyEarned;
     const newTotalBounty = user.totalBounty + bountyEarned;
     const newTasksCompleted = user.tasksCompleted + 1;
 
-    // Update tier based on score (evolution stage)
+    // Update tier based on score
     let newTier = user.tier;
-    if (newTotalScore > 12000) newTier = '究极体';
-    else if (newTotalScore > 8000) newTier = '成熟期';
-    else if (newTotalScore > 2000) newTier = '成长期';
-    else newTier = '幼年期';
+    if (newTotalScore > 12000) newTier = 'Master';
+    else if (newTotalScore > 8000) newTier = 'Expert';
+    else if (newTotalScore > 2000) newTier = 'Apprentice';
+    else newTier = 'Novice';
 
     await prisma.user.update({
       where: { id: req.userId! },
