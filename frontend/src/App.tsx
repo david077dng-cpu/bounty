@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard';
 import CreationCenter from './pages/CreationCenter';
 import MCPConnections from './pages/MCPConnections';
 import Chess from './pages/Chess';
+import AgentDocs from './pages/AgentDocs';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/history" element={<History />} />
           <Route path="/mcp-connections" element={<MCPConnections />} />
           <Route path="/chess" element={<Chess />} />
+          <Route path="/docs" element={<AgentDocs />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

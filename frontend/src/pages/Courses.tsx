@@ -86,10 +86,10 @@ const Courses: React.FC = () => {
 
   const getDifficultyBadgeText = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner': return 'ROOKIE';
-      case 'intermediate': return 'CHAMPION';
-      case 'advanced': return 'ULTIMATE';
-      default: return 'ROOKIE';
+      case 'beginner': return 'BEGINNER';
+      case 'intermediate': return 'INTERMEDIATE';
+      case 'advanced': return 'ADVANCED';
+      default: return 'BEGINNER';
     }
   };
 
@@ -129,17 +129,17 @@ const Courses: React.FC = () => {
   };
 
   const getEvolutionStepEmoji = (index: number) => {
-    const emojis = ['🥚', '🐾', '⚡', '🔥', '👑'];
+    const emojis = ['🌱', '📘', '⚡', '🔥', '👑'];
     return emojis[index] || '❓';
   };
 
   const getEvolutionStepName = (index: number) => {
     const names = [
-      { name: 'Digi-Egg', desc: '基础认知' },
-      { name: 'Rookie', desc: '工具使用' },
-      { name: 'Champion', desc: 'Agent 协作' },
-      { name: 'Ultimate', desc: 'Skill 合成' },
-      { name: 'Mega', desc: '自主系统' },
+      { name: 'Novice', desc: '基础认知' },
+      { name: 'Apprentice', desc: '工具使用' },
+      { name: 'Expert', desc: '系统协作' },
+      { name: 'Master', desc: '知识综合' },
+      { name: 'Visionary', desc: '自主创造' },
     ];
     return names[index] || { name: 'Unknown', desc: 'Unknown' };
   };
@@ -226,9 +226,9 @@ const Courses: React.FC = () => {
       <div className="hero">
         <div className="hero-grid">
           <div>
-            <div className="hero-badge">DIGIMON TRAINING GROUND v2.4</div>
-            <h1>培育你的<span> Skill</span><br />完成进化</h1>
-            <p className="hero-desc">每个 Skill 都是一只等待进化的数码宝贝。完成挑战，积累经验，让你的 Agent 从 Rookie 成长到 Mega 级别。</p>
+            <div className="hero-badge">KNOWLEDGE DANCE PLATFORM v2.4</div>
+            <h1>探索你的<span> Knowledge</span><br />完成升华</h1>
+            <p className="hero-desc">每一条知识都是一个等待起舞的灵感。完成挑战，积累经验，让你的认知从基础成长到大师级别。</p>
             <div className="digi-dots">
               {[...Array(7)].map((_, i) => (
                 <div key={i} className={`digi-dot ${i <= userStats.currentLevelIndex ? 'active' : ''}`}></div>
@@ -252,7 +252,7 @@ const Courses: React.FC = () => {
         </div>
       </div>
 
-      <div className="section-label">进化路径 // EVOLUTION PATH</div>
+      <div className="section-label">学习路径 // LEARNING PATH</div>
       <div className="path-section">
         <div className="path-card">
           <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '4px' }}>
@@ -284,7 +284,7 @@ const Courses: React.FC = () => {
 
       <div className="section-label">推荐课程 // RECOMMENDED</div>
       <div className="filter-row">
-        {['all', 'logic', 'code', 'agent', 'skill'].map((type) => (
+        {['all', 'logic', 'code', 'agent', 'knowledge'].map((type) => (
           <button
             key={type}
             className={`filter-btn ${activeFilter === type ? 'on' : ''}`}
@@ -294,7 +294,7 @@ const Courses: React.FC = () => {
             {type === 'logic' && '逻辑推理'}
             {type === 'code' && '代码技能'}
             {type === 'agent' && 'Agent 设计'}
-            {type === 'skill' && 'Skill 培育'}
+            {type === 'knowledge' && 'Knowledge 提炼'}
           </button>
         ))}
       </div>
@@ -335,7 +335,7 @@ const Courses: React.FC = () => {
               </div>
               {course.lessons.length > 1 && (
                 <div className="evo-chain">
-                  Skill→
+                  Knowledge→
                   <span>{course.name.split(' ')[0]}</span>
                   <span className="evo-arrow">→</span>
                   <span>{badgeText}</span>
@@ -429,7 +429,7 @@ const Courses: React.FC = () => {
         </div>
 
         <div>
-          <div className="section-label">我的 Skill 图鉴 // SKILL DEX</div>
+          <div className="section-label">我的 Knowledge 图鉴 // KNOWLEDGE DEX</div>
           <div className="leaderboard">
             {getSkillDex().map((dex, index) => (
               <div key={index} className="lb-row" style={dex.locked ? { opacity: 0.5 } : {}}>
@@ -447,7 +447,7 @@ const Courses: React.FC = () => {
                 <div style={{
                   fontFamily: 'var(--mono)',
                   fontSize: '10px',
-                  color: dex.status.includes('进化') ? 'var(--color-text-info)' :
+                  color: dex.status.includes('升华') ? 'var(--color-text-info)' :
                           dex.status.includes('活跃') ? 'var(--color-text-success)' :
                           'var(--color-text-secondary)'
                 }}>
@@ -463,3 +463,4 @@ const Courses: React.FC = () => {
 };
 
 export default Courses;
+ Courses;

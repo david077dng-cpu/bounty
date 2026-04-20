@@ -44,12 +44,12 @@ const History: React.FC = () => {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 16 }}>📝 训练记录</h2>
+      <h2 style={{ marginBottom: 16 }}>📝 互动记录</h2>
       <div>
         {submissions.length === 0 ? (
           <div className="empty-state">
-            // 暂无训练记录<br />
-            完成训练后结果显示在这里
+            // 暂无互动记录<br />
+            完成互动后结果显示在这里
           </div>
         ) : (
           submissions.map((sub) => (

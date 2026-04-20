@@ -10,6 +10,10 @@ import type {
   Course,
   MCPConnection,
   MCPTool,
+  InteractionStartResponse,
+  InteractionStepResponse,
+  InteractionFinishResponse,
+  InteractionRound,
 } from '../types';
 
 const API_BASE_URL = 'http://localhost:3001/api';
@@ -32,6 +36,12 @@ export const authApi = {
 
   me: () =>
     api.get<{ success: boolean; user: User; error?: string }>('/auth/me'),
+
+  getApiKey: () =>
+    api.get<{ success: boolean; apiKey: string | null; error?: string }>('/auth/api-key'),
+
+  generateApiKey: () =>
+    api.post<{ success: boolean; apiKey: string; error?: string }>('/auth/api-key/generate'),
 };
 
 // Tasks API
@@ -235,6 +245,45 @@ export interface SocialComment {
 export const illustrationApi = {
   get: (taskId: string) =>
     api.get<{ success: boolean; data: { svg: string | null } }>(`/tasks/${taskId}/illustration`),
+};
+
+// Gemini Image API (PNG generation via Imagen)
+export const geminiImageApi = {
+  get: (taskId: string) =>
+    api.get<{ success: boolean; data: { imageUrl: string; exists: boolean }; error?: string }>(
+      `/tasks/${taskId}/gemini-image`
+    ),
+};
+
+// Interaction API (turn-based interactive tasks)
+export const interactionApi = {
+  getHistory: (taskId: string) =>
+    api.get<{
+      success: boolean;
+      hasHistory: boolean;
+      history: InteractionRound[];
+      sessionId: string;
+      currentRound: number;
+      latestGameState?: any;
+    }>(`/interaction/history/${taskId}`),
+
+  start: (taskId: string) =>
+    api.post<InteractionStartResponse>(`/interaction/start/${taskId}`),
+
+  step: (taskId: string, sessionId: string, userInput: string, gameState?: any) =>
+    api.post<InteractionStepResponse>(`/interaction/step/${taskId}`, {
+      sessionId,
+      userInput,
+      gameState,
+    }),
+
+  finish: (taskId: string, sessionId: string) =>
+    api.post<InteractionFinishResponse>(`/interaction/finish/${taskId}`, { sessionId }),
+
+  reset: (taskId: string) =>
+    api.post<{ success: boolean; sessionId: string; roundNumber: number; systemResponse: string }>(
+      `/interaction/reset/${taskId}`
+    ),
 };
 
 export default api;

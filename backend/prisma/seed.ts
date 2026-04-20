@@ -238,6 +238,8 @@ const TASKS = [
   },
   {
     id:'E001', name:'种群进化 - 自私的基因', tier:'hard', bounty:600, cat:'进化博弈', catIcon:'🧬',
+    isInteractive: true,
+    interactionType: 'simulation',
     question:'探索囚徒困境中的合作进化：这是道金斯《自私的基因》中最著名的模拟实验。\n\n这个交互式模拟包含三个模块：\n1. **对战**：选择两个策略进行多轮单挑，观察谁得分更高\n2. **阿克塞尔罗德锦标赛**：重现1980年经典锦标赛，多个策略循环对战排名\n3. **种群进化**：模拟多代进化，观察合作策略如何在种群中传播和演化\n\n请你：\n- 在对战模块测试不同策略组合，观察结果\n- 在锦标赛模块运行锦标赛，看看哪个策略最终胜出\n- 在进化模块测试不同初始比例：比如 5% 以牙还牙 + 95% 永远背叛，合作策略能否入侵种群？\n- 思考：为什么在无限重复囚徒困境中，合作能够进化出来？这揭示了什么进化生物学原理？\n\n请将你的发现和结论写在下方。',
     hint:'阿克塞尔罗德锦标赛中，赢的总是简单友好的策略。种群进化中，合作可以自发涌现，即使初始比例很低。',
     steps:[
@@ -250,8 +252,25 @@ const TASKS = [
       ['ok',   '→ 请你亲自体验不同组合，观察进化动态'],
       ['ok',   '[E001] 模拟器就绪 ✓'],
     ],
-    answer:'**关键结论：**\n\n1. **Tit-for-Tat（以牙还牙）总是赢**：它在锦标赛中稳定胜出，因为它具备四个特点：友好（从不先背叛）、报复（会反击）、宽容（只报复一次）、清晰（策略简单可预测）。\n\n2. **合作可以进化**：即使种群开始几乎全是背叛者，只要有一小簇合作策略聚集在一起，合作就能入侵并扩散。因为合作者之间对局得到高分，适合度更高，繁殖更快。\n\n3. **自私的基因层面**：看起来利他的合作行为，其实可以在基因层面得到进化——合作策略互相帮助，整体适合度更高，因此其基因频率会上升。\n\n4. **共同进化**：进化是互动的，你今天的成功取决于你是否能和他人成功互动，而不是单纯地剥削对方。\n\n这就是道金斯在《自私的基因》中阐述的核心洞见：合作可以在一个自私的世界里自发进化出来。',
+    answer:'**关键结论：**\n\n1. **Tit-for-Tat（以牙还牙）总是赢**：它在锦标赛中稳定胜出，因为它具备四个特点：友好（从不先背叛）、报复（会反击）、宽容（只报复一次）、清晰（策略简单可预测）。\n\n2. **合作可以进化**：即使种群开始几乎全是背叛者，只要有一小簇合作策略聚集在一起，合作就能入侵并扩散。因为合作者之间对局得到高分，适合度更高，繁殖更快。\n\n3. **自私的基因层面**：看起来利他的合作行为，其实可以在基因层面得到进化——合作策略互相帮助，整体适合度更高，因此其基因频率会上升。\n\n4. **共同进化**：进化是互动的，你今天的成功取决于你是否能和他人成功互动，而不是单纯地剥削对方。\n\n这就是道金斯在《自私的基因》中阐述的核心洞见：合作可以在一个自私的世界里自发进化出来分析。',
     scores:{ accuracy:85, reasoning:95, creativity:88, speed:65 }
+  },
+  {
+    id:'PSY01', name:'幸存者偏差', tier:'medium', bounty:220, cat:'心理学效应', catIcon:'🧪',
+    question:'二战期间，盟军试图给轰炸机增加装甲以减少被击落的概率。专家研究了返航飞机上的弹孔分布，发现机翼和机尾的弹孔最密集，而引擎舱几乎没有弹孔。\n\n于是，多数专家建议在弹孔最密集的机翼加装装甲。但统计学家沃德（Abraham Wald）却提出了完全相反的建议。\n\n请问：沃德建议在哪里加装装甲？他的逻辑是什么？这揭示了什么思维谬误？',
+    hint:'思考一下：那些在引擎舱中弹的飞机去了哪里？',
+    steps:[
+      ['step','[PSY01] 启动统计学思维引擎...'],
+      ['think','→ 观察数据：返航飞机在机翼、机尾有大量弹孔'],
+      ['think','→ 关键缺失数据：那些没能返航的飞机'],
+      ['calc', '  逻辑推导：既然机翼中弹的飞机能返航，说明机翼不是致命伤'],
+      ['calc', '  反向推理：引擎舱几乎没有弹孔，是因为引擎中弹的飞机都坠毁了，无法成为样本'],
+      ['warn', '  这就是经典的"幸存者偏差"：只关注筛选后的结果，忽略了筛选过程本身'],
+      ['ok',   '→ 结论：应在引擎舱加强装甲'],
+      ['ok',   '[PSY01] 分析完成 ✓'],
+    ],
+    answer:'**沃德建议在引擎舱加装装甲**。\n\n**逻辑**：返航飞机上的弹孔分布反映的是"哪些部位中弹后还能飞回来"。机翼和机尾弹孔多，说明这些部位不致命；引擎舱没弹孔，不是因为引擎不会中弹，而是因为引擎中弹的飞机都坠毁了。这就是**幸存者偏差（Survivorship Bias）**：当我们只观察成功（幸存）的案例时，往往会得出错误的因果结论，因为最重要的失败数据已经从样本中消失了。',
+    scores:{ accuracy:90, reasoning:92, creativity:85, speed:88 }
   },
   // 批判性思维课程 - 第1课：什么是批判性思维
   {
@@ -662,6 +681,72 @@ const TASKS = [
     answer:'**1. 一次博弈纳什均衡**：双方都选"不开"（搭便车），类似囚徒困境结局。\n\n**2. 有限已知重复的逆向归纳悖论**：\n- 第24轮是最后一轮 → 没有未来惩罚 → 双方都背叛\n- 第23轮：知道第24轮一定背叛，所以第23轮的合作也没意义 → 背叛\n- 以此类推... **每一轮都背叛**\n\n这确实反直觉！但它依赖于"完全理性"假设。现实中人不会做24步逆向归纳。\n\n**3. 无穷重复/不确定终点下的"以牙还牙"**：\n- 第一轮：合作\n- 之后每轮：模仿对方上一轮的行为（你合作我合作，你背叛我背叛）\n- 维持合作的条件：**未来的贴现因子足够大**——即双方都足够看重未来的收益。"未来的影子"越长，合作越稳定。\n\n**4. 以牙还牙的四个特质**：\n- **善良（Nice）**：从不先背叛\n- **可激怒（Retaliatory）**：被背叛后立即报复\n- **宽容（Forgiving）**：对方恢复合作后，自己也恢复\n- **清晰（Clear）**：策略简单透明，对方容易理解你的行为模式\n\n**为什么合作能进化？** 整个课程的核心洞见是：一次博弈中，理性人往往走向背叛（GT01的价格战、GT02的空调困境）。但现实世界是**重复博弈**——你和同事、邻居、商业伙伴会反复互动。当"未来的影子"足够长时，背叛的短期收益会被未来的惩罚成本抵消，合作成为理性选择。不需要道德高尚，自私的个体在重复互动中自然会演化出合作——这是博弈论最深刻的发现。',
     scores:{ accuracy:90, reasoning:95, creativity:88, speed:65 }
   },
+  {
+    id:'P001', name:'数字推理阶梯', tier:'beginner', bounty:100, cat:'逻辑能力', catIcon:'🧠',
+    isInteractive: true,
+    interactionType: 'puzzle',
+    interactionConfig: JSON.stringify({
+      steps: [
+        {
+          prompt: '第一关：找规律\n请看数列：2, 4, 8, 16, __\n请你填出下一个数字。',
+          answerCheck: '正确答案是 32。规律是每个数字都是前一个乘以 2（2^1, 2^2, 2^3, 2^4, 2^5）。',
+          correctHint: '太棒了！你通过了第一关，现在进入第二关。',
+          wrongHint: '不对哦，再想想。每个数字之间是什么关系？',
+          allowRetry: true
+        },
+        {
+          prompt: '第二关：奇数规律\n请看数列：1, 3, 5, 7, 9, __\n请填出下一个数字。',
+          answerCheck: '正确答案是 11。这是奇数列。',
+          correctHint: '很好！第二关通过，现在挑战第三关。',
+          wrongHint: '再想想，这些数字都是奇数，从 1 开始依次...',
+          allowRetry: true
+        },
+        {
+          prompt: '第三关：斐波那契\n请看数列：1, 1, 2, 3, 5, 8, __\n请找出规律并填出下一个数字。',
+          answerCheck: '正确答案是 13。斐波那契数列：每个数字等于前两个之和（5+8=13）。',
+          correctHint: '完美！你已经掌握了规律，最后一关稍微难一点。',
+          wrongHint: '不对哦，看看：1+1=2，1+2=3，2+3=5，3+5=8，那 5+8 等于多少？',
+          allowRetry: true
+        },
+        {
+          prompt: '第四关：更难的规律\n请看数列：1, 4, 9, 16, 25, __\n请找规律填空。',
+          answerCheck: '正确答案是 36。这是平方数：1², 2², 3², 4², 5², 6²。',
+          correctHint: '🎉 恭喜！你已经通过了所有四个关卡！你的逻辑推理能力很不错。',
+          wrongHint: '换个角度想：1 是 1 的平方，4 是 2 的平方...',
+          allowRetry: true
+        }
+      ]
+    }),
+    question:'这是一个渐进式数字推理谜题，需要你一步一步解开四个关卡。每答对一题就会解锁下一题，慢慢来。',
+    hint:'每一关都有规律，仔细观察相邻数字之间的关系。',
+    steps:[
+      ['step', '[P001] 渐进式数字推理谜题'],
+      ['think', '→ 共四个关卡，逐步解锁'],
+      ['ok', '点击\"开始解谜\"开始第一关'],
+    ],
+    answer:'四个关卡的答案依次是：\n1. 32（2的幂次）\n2. 11（奇数列）\n3. 13（斐波那契）\n4. 36（平方数）\n\n这是一个简单的渐进解谜示例，展示了多步逐步解锁的互动体验。',
+    scores:{ accuracy:100, reasoning:90, creativity:70, speed:80 }
+  },
+  {
+    id:'D001', name:'苏格拉底问答', tier:'beginner', bounty:120, cat:'批判性思维', catIcon:'🧠',
+    isInteractive: true,
+    interactionType: 'dialogue',
+    interactionConfig: JSON.stringify({
+      systemPrompt: '你是苏格拉底，一位伟大的古希腊哲学家。你通过提问引导人们思考，而不是直接给出答案。你的风格是谦逊、追问，总是用问题来回应问题，帮助对方自己得出结论。请保持你的语气温和但有启发性。现在开始和用户对话，用户来向你请教关于\"什么是正义\"这个问题。',
+      initialMessage: '你好，朋友。我是苏格拉底。听说你想要和我讨论什么是正义。我对正义其实一无所知 —— 这正是我为什么一直在寻找。也许你能告诉我，在你看来，什么是正义呢？请说说你的看法。',
+      maxRounds: 10,
+      temperature: 0.8
+    }),
+    question:'这是一个回合制对话任务，和苏格拉底一起探讨\"什么是正义\"。苏格拉底会一步步引导你思考，而不是直接告诉你答案。',
+    hint:'苏格拉底总是提问，不会直接说教。真诚地表达你的看法，然后回答他的问题。',
+    steps:[
+      ['step', '[D001] 苏格拉底式对话'],
+      ['think', '→ 这是一个多回合AI对话互动'],
+      ['ok', '点击\"开始对话\"开始和哲学家交流'],
+    ],
+    answer:'苏格拉底问答法的核心不是给出答案，而是通过不断的追问帮助你澄清自己的思想，发现自己思考中的矛盾，从而自己走向更深刻的理解。这正是辩证法的起源。',
+    scores:{ accuracy:90, reasoning:100, creativity:90, speed:80 }
+  },
 ];
 
 async function main() {
@@ -703,7 +788,24 @@ async function main() {
 
     await prisma.task.upsert({
       where: { id: task.id },
-      update: {},
+      update: {
+        name: task.name,
+        tier: task.tier,
+        bounty: task.bounty,
+        categoryId: category.id,
+        catIcon: task.catIcon,
+        question: task.question,
+        hint: task.hint || null,
+        answer: task.answer,
+        refAccuracy: task.scores.accuracy,
+        refReasoning: task.scores.reasoning,
+        refCreativity: task.scores.creativity,
+        refSpeed: task.scores.speed,
+        steps: JSON.stringify(task.steps),
+        isInteractive: task.isInteractive || false,
+        interactionType: task.interactionType || null,
+        interactionConfig: task.interactionConfig || null,
+      },
       create: {
         id: task.id,
         name: task.name,
@@ -719,6 +821,9 @@ async function main() {
         refCreativity: task.scores.creativity,
         refSpeed: task.scores.speed,
         steps: JSON.stringify(task.steps),
+        isInteractive: task.isInteractive || false,
+        interactionType: task.interactionType || null,
+        interactionConfig: task.interactionConfig || null,
       },
     });
   }

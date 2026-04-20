@@ -48,6 +48,11 @@ const Home: React.FC = () => {
 
   return (
     <div>
+      <div className="home-hero">
+        <h1>MAKE KNOWLEDGE DANCE</h1>
+        <p>让知识化作灵动的互动体验</p>
+      </div>
+
       <div className="cat-filter" id="cat-filter">
         {categories.map((cat) => (
           <button
@@ -85,7 +90,7 @@ const Home: React.FC = () => {
       </div>
       <div className="task-grid">
         {filteredTasks.length === 0 ? (
-          <div className="empty-state">暂无训练挑战</div>
+          <div className="empty-state">暂无互动体验</div>
         ) : (
           filteredTasks.map((task) => <TaskCard key={task.id} task={task} />)
         )}

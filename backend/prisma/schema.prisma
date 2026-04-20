@@ -11,13 +11,14 @@ model User {
   id            Int          @id @default(autoincrement())
   username      String       @unique
   password      String       // Hashed with bcrypt
+  apiKey        String?      @unique
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
   totalScore    Int          @default(0)
   totalBounty   Int          @default(0)
   tasksCompleted Int         @default(0)
-  tier          String       @default("幼年期") // 幼年期, 成长期, 成熟期, 究极体
+  tier          String       @default("Novice") // Novice, Apprentice, Expert, Master
 
   chessElo            Int       @default(1200)
   chessStreak         Int       @default(0)
@@ -31,6 +32,7 @@ model User {
   createdCourses Course[]
   likes         Like[]
   comments      Comment[]
+  interactionRounds InteractionRound[]
 }
 
 model Category {
@@ -60,6 +62,11 @@ model Task {
   authorId    Int?
   author      User?    @relation(fields: [authorId], references: [id], onDelete: Cascade)
   isPublic    Boolean  @default(true)
+  // --- Interactive turn-based support ---
+  isInteractive Boolean @default(false)
+  interactionType String? // "dialogue", "game", "puzzle", "simulation"
+  interactionConfig String? // JSON configuration for the interaction
+  rounds        Int?     // expected number of rounds (optional)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -67,6 +74,7 @@ model Task {
   lessons     Lesson[]
   likes         Like[]
   comments      Comment[]
+  interactionRounds InteractionRound[]
 }
 
 model Submission {
@@ -155,6 +163,23 @@ model Comment {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+// Store interactive session history for turn-based tasks
+model InteractionRound {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  sessionId   String   // Unique per interaction session (user + task + restart)
+  roundNumber Int      // current round number (starting from 1)
+  userInput   String?  // user's input/action in this round
+  systemResponse String? // system/AI response to user's action
+  timestamp   DateTime @default(now())
+  
+  // For game states - store the full game state as JSON
+  gameState   String?  // JSON string of current game state after this round
 }
 
 // Store user's MCP server connections

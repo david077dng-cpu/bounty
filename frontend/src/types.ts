@@ -44,6 +44,11 @@ export interface Task {
   refCreativity: number;
   refSpeed: number;
   authorId?: number | null;
+  // Interactive task support
+  isInteractive: boolean;
+  interactionType?: string | null; // "dialogue", "game", "puzzle", "simulation"
+  interactionConfig?: any | null;
+  rounds?: number | null;
 }
 
 export interface Scores {
@@ -143,7 +148,7 @@ export interface SlashCommand {
   id: string;           // Unique command identifier
   name: string;         // Display name in dropdown (without /)
   description: string;  // Short description shown in dropdown
-  category: 'navigation' | 'template' | 'mcp' | 'action' | 'digimon';
+  category: 'navigation' | 'template' | 'mcp' | 'action' | 'knowledge';
   icon?: string;        // Emoji or icon for display
   template?: string;    // Text template to insert (for template commands)
   action?: () => void;  // Action to execute (for navigation/action commands)
@@ -151,4 +156,41 @@ export interface SlashCommand {
     connectionId: number;
     toolName: string;
   };
+}
+
+// --- Interactive Turn-based Task Types ---
+export interface InteractionRound {
+  roundNumber: number;
+  userInput?: string;
+  systemResponse?: string;
+  gameState?: any;
+  timestamp: string;
+}
+
+export interface InteractionStartResponse {
+  success: boolean;
+  sessionId: string;
+  roundNumber: number;
+  systemResponse: string;
+  interactionType?: string;
+  config?: any;
+}
+
+export interface InteractionStepResponse {
+  success: boolean;
+  roundNumber: number;
+  systemResponse: string;
+  gameState?: any;
+}
+
+export interface InteractionFinishResponse {
+  success: boolean;
+  submission: {
+    id: number;
+    bountyEarned: number;
+    totalScore: number;
+    grade: string;
+    scores: Scores;
+  };
+  fullAnswer: string;
 }

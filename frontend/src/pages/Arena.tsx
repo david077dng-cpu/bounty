@@ -5,6 +5,8 @@ import type { Task, Scores, MCPConnection, MCPTool, SlashCommand } from '../type
 import { useAuth } from '../contexts/AuthContext';
 import SlashCommandPopup from '../components/SlashCommandPopup';
 import PrisonerDilemmaSimulation from '../components/PrisonerDilemmaSimulation';
+import TurnBasedInteractive from '../components/TurnBasedInteractive';
+import ProgressivePuzzle from '../components/ProgressivePuzzle';
 import SocialPanel from '../components/SocialPanel';
 import IllustrationPanel from '../components/IllustrationPanel';
 import { slashCommandRegistry } from '../utils/slashCommandRegistry';
@@ -36,6 +38,8 @@ const Arena: React.FC = () => {
   // ARK LLM agent state (hidden for now)
   const [arkConfigured, setArkConfigured] = useState(false);
   const [arkStreaming, setArkStreaming] = useState(false);
+  // Interactive mode state
+  const [interactiveCompleted, setInteractiveCompleted] = useState(false);
   // Keep TypeScript happy
   void arkConfigured;
   void arkStreaming;
@@ -491,7 +495,7 @@ const Arena: React.FC = () => {
 // 导航: /home /courses /leaderboard /mcp /history
 // 模板: /thinking /system-prompt /agent /cot
 // 动作: /clear /submit /help
-// 数码宝贝: /evolve
+// 寄语: /explore
 // MCP 工具会自动列出您保存的所有可用工具
 `;
           insertTemplateAtCursor(helpText);
@@ -625,24 +629,91 @@ const Arena: React.FC = () => {
             }}
           />
           <span id="exec-status">
-            {running ? `训练中: ${task.name}` : showResult ? `✓ 完成: ${task.name}` : `挑战已加载，准备训练`}
+            {running ? `训练中: ${task.name}` : showResult ? `✓ 完成: ${task.name}` : `🔍 探索信号已捕获，准备破译`}
           </span>
         </div>
 
         <div className="question-box" id="question-display">
-          <div className="q-label">📋 训练挑战</div>
+          <div className="q-label">🧭 探索目标</div>
           <div className="q-text">
             {task.question.split('\n').map((line: string, i: number) => (
               <div key={i}>{line}</div>
             ))}
           </div>
-          {task.hint && <div className="q-hint">💡 {task.hint}</div>}
+          {task.hint && <div className="q-hint">✨ 灵感火花：{task.hint}</div>}
         </div>
 
         <IllustrationPanel taskId={task.id} />
 
-        {/* Interactive Prisoner Dilemma Simulation for E001 */}
-        {task.id === 'E001' && <PrisonerDilemmaSimulation />}
+        {/* Interactive components based on type */}
+        {task.isInteractive && task.interactionType === 'dialogue' && (
+          <TurnBasedInteractive
+            task={task}
+            onComplete={(finalAnswer, scores) => {
+              setUserAnswer(finalAnswer);
+              setCurrentScores(scores);
+              setInteractiveCompleted(true);
+              calculateAndShowResult(scores);
+            }}
+          />
+        )}
+
+        {task.isInteractive && task.interactionType === 'puzzle' && task.interactionConfig && (
+          <ProgressivePuzzle
+            task={task}
+            onComplete={(finalAnswer, scores) => {
+              setUserAnswer(finalAnswer);
+              setCurrentScores(scores);
+              setInteractiveCompleted(true);
+              calculateAndShowResult(scores);
+            }}
+          />
+        )}
+
+        {/* Legacy: Keep the old turn_based for backward compatibility */}
+        {!task.isInteractive && task.interactionType === 'turn_based' && task.interactionConfig && (
+          <TurnBasedInteractive
+            task={task}
+            onComplete={(finalAnswer, scores) => {
+              setUserAnswer(finalAnswer);
+              setCurrentScores(scores);
+              setInteractiveCompleted(true);
+              calculateAndShowResult(scores);
+            }}
+          />
+        )}
+
+        {/* Legacy: Keep the old puzzle for backward compatibility */}
+        {!task.isInteractive && task.interactionType === 'puzzle' && task.interactionConfig && (
+          <ProgressivePuzzle
+            task={task}
+            onComplete={(finalAnswer) => {
+              setUserAnswer(finalAnswer);
+              // Use reference scores with randomization
+              const scores: Scores = {
+                accuracy: Math.min(100, Math.max(50, task.refAccuracy + Math.floor(Math.random() * 20) - 10)),
+                reasoning: Math.min(100, Math.max(50, task.refReasoning + Math.floor(Math.random() * 20) - 10)),
+                creativity: Math.min(100, Math.max(50, task.refCreativity + Math.floor(Math.random() * 20) - 10)),
+                speed: Math.min(100, Math.max(50, task.refSpeed + Math.floor(Math.random() * 20) - 10)),
+              };
+              setCurrentScores(scores);
+              setInteractiveCompleted(true);
+              calculateAndShowResult(scores);
+            }}
+          />
+        )}
+
+        {/* Simulation type - for game theory simulations and similar interactive modules */}
+        {task.isInteractive && task.interactionType === 'simulation' && (
+          <PrisonerDilemmaSimulation />
+        )}
+
+        {/* Game type - for custom interactive games (can be implemented later) */}
+        {task.isInteractive && task.interactionType === 'game' && (
+          <div className="interactive-notice">
+            🎮 自定义游戏互动组件需要单独实现
+          </div>
+        )}
 
         {/* MCP Tool Calling Panel - only shown when user is logged in and has connections */}
         {user && mcpConnections.length > 0 && (
@@ -742,50 +813,63 @@ const Arena: React.FC = () => {
 
         {/* MCP panel only shown when user has connections */}
 
-        <div className="answer-area" ref={answerAreaRef} style={{ position: 'relative' }}>
-          <div className="answer-label">// 你的训练内容（可以直接填写，输入 / 使用命令，或点击「自动训练」观看成长过程）</div>
-          <textarea
-            ref={textareaRef}
-            className="answer-input"
-            id="user-answer"
-            placeholder="在此输入训练内容或思考过程，输入 / 打开命令菜单..."
-            value={userAnswer}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            disabled={running}
-          />
-          <SlashCommandPopup
-            visible={showSlashCommand}
-            commands={filteredCommands}
-            selectedIndex={selectedSlashIndex}
-            onSelect={handleCommandSelect}
-            onHighlight={handleCommandHighlight}
-            onClose={closeSlashCommand}
-            x={popupPosition.x}
-            y={popupPosition.y}
-            containerRef={answerAreaRef}
-          />
-        </div>
-
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-          <button
-            className="run-btn"
-            id="run-btn"
-            onClick={runDemo}
-            disabled={running}
-            style={{ flex: 1 }}
-          >
-            ▶ 演示训练 · 观看示例
-          </button>
-          <button
-            className="run-btn"
-            onClick={submitManual}
-            disabled={running || !userAnswer.trim()}
-            style={{ flex: 1, borderColor: 'rgba(155,114,207,0.5)', color: 'var(--purple)' }}
-          >
-            ✎ 提交评估
-          </button>
-        </div>
+        {/* Integrated Console for Answer & Actions */}
+        {(!task.interactionType || interactiveCompleted || task.interactionType === 'turn_based') && (
+          <div className="arena-console">
+            <div className="answer-area" ref={answerAreaRef} style={{ position: 'relative' }}>
+              <div className="answer-input-wrapper">
+                <textarea
+                  ref={textareaRef}
+                  className="answer-input"
+                  id="user-answer"
+                  placeholder="让你的思想在此起舞，输入 / 唤醒更多交互指令..."
+                  value={userAnswer}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  disabled={running}
+                  rows={1}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = 'auto';
+                    target.style.height = `${target.scrollHeight}px`;
+                  }}
+                />
+                <div className="console-actions">
+                  <button
+                    className="action-circle-btn"
+                    onClick={runDemo}
+                    disabled={running}
+                    title="演示训练 · 观看示例"
+                  >
+                    🚀
+                  </button>
+                  <button
+                    className="action-circle-btn primary"
+                    onClick={submitManual}
+                    disabled={running || !userAnswer.trim()}
+                    title="提交评估"
+                  >
+                    ✦
+                  </button>
+                </div>
+              </div>
+              <SlashCommandPopup
+                visible={showSlashCommand}
+                commands={filteredCommands}
+                selectedIndex={selectedSlashIndex}
+                onSelect={handleCommandSelect}
+                onHighlight={handleCommandHighlight}
+                onClose={closeSlashCommand}
+                x={popupPosition.x}
+                y={popupPosition.y}
+                containerRef={answerAreaRef}
+              />
+            </div>
+            <div className="answer-label" style={{ display: 'block', opacity: 0.5, marginTop: '8px', fontSize: '10px' }}>
+              // 灵感纪实：捕捉思维火花，支持 / 呼唤技能指令
+            </div>
+          </div>
+        )}
 
         {log.length > 0 && (
           <div id="log-wrap" style={{ display: 'block', marginTop: '12px' }}>

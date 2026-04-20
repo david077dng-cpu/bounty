@@ -35,19 +35,20 @@ const Header: React.FC = () => {
   return (
     <div className="header">
       <div className="logo">
-        <div className="logo-icon">🥚</div>
+        <div className="logo-icon">✨</div>
         <div>
-          <div className="logo-text">DIGIMON HUB</div>
-          <div className="logo-sub">进化训练场 v0.2 · 一起成长</div>
+          <div className="logo-text">MAKE KNOWLEDGE DANCE</div>
+          <div className="logo-sub">让知识化作灵动的互动体验</div>
         </div>
       </div>
       <div className="nav">
-        <Link to="/" className="nav-link">训练场</Link>
-        <Link to="/courses" className="nav-link">进化路线</Link>
-        <Link to="/leaderboard" className="nav-link">排名榜</Link>
+        <Link to="/" className="nav-link">探索发现</Link>
+        <Link to="/courses" className="nav-link">主题路线</Link>
+        <Link to="/leaderboard" className="nav-link">排行榜</Link>
         <Link to="/chess" className="nav-link">棋局</Link>
+        <Link to="/docs" className="nav-link">文档</Link>
         {!loading && user && (
-          <Link to="/creation" className="nav-link">挑战工坊</Link>
+          <Link to="/creation" className="nav-link">创作中心</Link>
         )}
         {!loading && (
           <>
@@ -58,7 +59,7 @@ const Header: React.FC = () => {
                   <div
                     className="user-avatar"
                     style={{ backgroundColor: getAvatarColor() }}
-                    title="数码档案"
+                    title="个人档案"
                   >
                     {getInitial()}
                   </div>

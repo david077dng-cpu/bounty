@@ -80,6 +80,9 @@ const CreationCenter: React.FC = () => {
     refSpeed: 80,
     isPublic: true,
     steps: '',
+    // Interactive fields
+    interactiveType: '', // '' = normal, 'turn_based', 'puzzle', 'game'
+    interactiveConfig: '', // JSON string
   });
 
   // AI generation state
@@ -160,6 +163,15 @@ const CreationCenter: React.FC = () => {
           return [type.trim(), textParts.join(':').trim()] as [string, string];
         });
       }
+      let parsedInteractiveConfig: any = null;
+      if (formData.interactiveType && formData.interactiveConfig.trim()) {
+        try {
+          parsedInteractiveConfig = JSON.parse(formData.interactiveConfig.trim());
+        } catch (e) {
+          setError('互动配置JSON格式不正确');
+          return;
+        }
+      }
       const data = {
         ...formData,
         categoryId: parseInt(formData.categoryId),
@@ -169,6 +181,7 @@ const CreationCenter: React.FC = () => {
         refCreativity: parseInt(String(formData.refCreativity)),
         refSpeed: parseInt(String(formData.refSpeed)),
         steps: parsedSteps,
+        interactiveConfig: parsedInteractiveConfig,
       };
       const res = await creationApi.createTask(data);
       if (res.data.success) {
@@ -180,6 +193,7 @@ const CreationCenter: React.FC = () => {
           catIcon: '🔍', question: '', hint: '', answer: '',
           refAccuracy: 80, refReasoning: 80, refCreativity: 80, refSpeed: 80,
           isPublic: true, steps: '',
+          interactiveType: '', interactiveConfig: '',
         });
         loadData();
       } else {
@@ -356,8 +370,8 @@ const CreationCenter: React.FC = () => {
 
   return (
     <div className="creation-center">
-      <h1>挑战工坊</h1>
-      <p className="page-desc">创建训练挑战，分享给其他训练师</p>
+      <h1>创作中心</h1>
+      <p className="page-desc">创建知识体验，分享给其他探索者</p>
 
       <div className="tabs">
         <button className={`tab ${activeTab === 'list' ? 'active' : ''}`} onClick={() => setActiveTab('list')}>
@@ -494,9 +508,44 @@ const CreationCenter: React.FC = () => {
             </label>
           </div>
 
-          <div className="form-actions">
-            <button type="submit" className="btn-submit">创建挑战</button>
+          {/* Interactive Task Options */}
+          <div className="form-group">
+            <label>互动类型</label>
+            <select name="interactiveType" value={formData.interactiveType} onChange={handleInputChange}>
+              <option value="">普通任务（单次提交）</option>
+              <option value="turn_based">回合制对话（用户 ↔ AI 多轮问答）</option>
+              <option value="puzzle">渐进式解谜（多步解锁）</option>
+              <option value="game">自定义游戏互动</option>
+            </select>
+            <small>
+              选择互动类型后需要填写互动配置 JSON。<br/>
+              • turn_based 需要: {'{ systemPrompt, initialQuestion, maxTurns, finalEvaluationPrompt }'}<br/>
+              • puzzle 需要: {'{ title, description, steps: [{question, hint, answerPattern, nextUnlockHint}], finalRewardText }'}
+            </small>
           </div>
+
+          {formData.interactiveType && (
+            <div className="form-group">
+              <label>互动配置 (JSON)</label>
+              <textarea
+                name="interactiveConfig"
+                value={formData.interactiveConfig}
+                onChange={handleInputChange}
+                placeholder='{
+  "systemPrompt": "你是一个助手...",
+  "initialQuestion": "第一个问题...",
+  "maxTurns": 5,
+  "finalEvaluationPrompt": "请评价..."
+}'
+                rows={10}
+                required
+              />
+            </div>
+          )}
+
+          <button type="submit" className="btn-submit" disabled={loading}>
+            {loading ? '保存中...' : '保存挑战'}
+          </button>
         </form>
       )}
 

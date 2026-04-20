@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { mcpApi } from '../services/api';
+import { mcpApi, authApi } from '../services/api';
 import type { MCPConnection } from '../types';
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Dashboard.css';
@@ -15,12 +15,52 @@ const Dashboard: React.FC = () => {
   const [newUrl, setNewUrl] = useState('');
   const [newApiKey, setNewApiKey] = useState('');
   const [error, setError] = useState('');
+  
+  // Agent API Key state
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [showKey, setShowKey] = useState(false);
+  const [generatingKey, setGeneratingKey] = useState(false);
 
   useEffect(() => {
     if (user) {
       loadConnections();
+      loadApiKey();
     }
   }, [user]);
+
+  const loadApiKey = async () => {
+    try {
+      const res = await authApi.getApiKey();
+      if (res.data.success) {
+        setApiKey(res.data.apiKey);
+      }
+    } catch (err) {
+      console.error('Failed to load API key:', err);
+    }
+  };
+
+  const handleGenerateKey = async () => {
+    if (apiKey && !confirm('Generating a new key will invalidate your current key. Continue?')) {
+      return;
+    }
+    setGeneratingKey(true);
+    try {
+      const res = await authApi.generateApiKey();
+      if (res.data.success) {
+        setApiKey(res.data.apiKey);
+        setShowKey(true);
+      }
+    } catch (err) {
+      console.error('Failed to generate API key:', err);
+    } finally {
+      setGeneratingKey(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    alert('已复制到剪贴板');
+  };
 
   const loadConnections = async () => {
     try {
@@ -115,43 +155,64 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="stat-card">
             <div className="stat-value">{user.tier}</div>
-            <div className="stat-label">进化阶段</div>
+            <div className="stat-label">认知阶段</div>
           </div>
         </div>
       </div>
 
       {/* Quick Links */}
       <div className="dashboard-section quick-links">
-        <h2>🔗 快捷入口</h2>
-        <div className="links-grid">
-          <Link to="/history" className="quick-link-card">
-            <div className="ql-icon">📜</div>
-            <div className="ql-text">
-              <div className="ql-title">训练记录</div>
-              <div className="ql-desc">查看所有训练记录和成长</div>
+        {/* ... existing content ... */}
+      </div>
+
+      {/* Agent Access Section */}
+      <div className="dashboard-section agent-access">
+        <div className="section-header">
+          <h2>🤖 Agent 接入</h2>
+          <div className="header-badge">Agent-Native</div>
+        </div>
+        <div className="agent-access-content">
+          <p className="section-desc">
+            使用 API Key 让你的 AI Agent 自动访问平台任务和工具。
+            查看 <a href="/llms.txt" target="_blank" rel="noreferrer">llms.txt</a> 获取接入指南。
+          </p>
+          
+          <div className="api-key-container">
+            <div className="api-key-label">您的 Agent API Key</div>
+            <div className="api-key-box">
+              <input 
+                type={showKey ? "text" : "password"} 
+                value={apiKey || "尚未生成 API Key"} 
+                readOnly 
+                className="api-key-input"
+              />
+              <div className="api-key-actions">
+                <button className="btn-icon" onClick={() => setShowKey(!showKey)} title={showKey ? "隐藏" : "显示"}>
+                  {showKey ? "👁️‍🗨️" : "👁️"}
+                </button>
+                {apiKey && (
+                  <button className="btn-icon" onClick={() => copyToClipboard(apiKey)} title="复制">
+                    📋
+                  </button>
+                )}
+              </div>
             </div>
-          </Link>
-          <Link to="/courses" className="quick-link-card">
-            <div className="ql-icon">📚</div>
-            <div className="ql-text">
-              <div className="ql-title">进化路线</div>
-              <div className="ql-desc">按顺序提升数码兽能力</div>
+            <button 
+              className="btn-secondary" 
+              onClick={handleGenerateKey} 
+              disabled={generatingKey}
+            >
+              {generatingKey ? "生成中..." : (apiKey ? "重新生成" : "生成 API Key")}
+            </button>
+          </div>
+
+          <div className="agent-mcp-info">
+            <div className="info-item">
+              <span className="info-label">平台 MCP 端点:</span>
+              <code>http://localhost:3001/api/platform/mcp</code>
+              <button className="btn-copy-small" onClick={() => copyToClipboard('http://localhost:3001/api/platform/mcp')}>复制</button>
             </div>
-          </Link>
-          <Link to="/leaderboard" className="quick-link-card">
-            <div className="ql-icon">🏆</div>
-            <div className="ql-text">
-              <div className="ql-title">排名榜</div>
-              <div className="ql-desc">查看全球训练师排名</div>
-            </div>
-          </Link>
-          <Link to="/creation" className="quick-link-card">
-            <div className="ql-icon">✍️</div>
-            <div className="ql-text">
-              <div className="ql-title">挑战工坊</div>
-              <div className="ql-desc">创建分享训练挑战</div>
-            </div>
-          </Link>
+          </div>
         </div>
       </div>
 
@@ -201,7 +262,7 @@ const Dashboard: React.FC = () => {
 
         {connections.length === 0 ? (
           <div className="empty-state">
-            <p>还没有添加任何技能连接。添加一个后就可以在训练场中使用技能了。</p>
+            <p>还没有添加任何技能连接。添加一个后就可以在探索中使用技能了。</p>
           </div>
         ) : (
           <div className="connections-list">

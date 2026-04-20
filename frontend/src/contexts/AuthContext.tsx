@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User, AuthContextType } from '../types';
 import { authApi } from '../services/api';
+import { soundManager } from '../utils/sound';
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -31,10 +32,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await authApi.login(username, password);
       if (res.data.success && res.data.user) {
         setUser(res.data.user);
+        soundManager.playSuccess();
         return { success: true };
       }
+      soundManager.playError();
       return { success: false, error: res.data.error || 'Login failed' };
     } catch (error: any) {
+      soundManager.playError();
       return { success: false, error: error.response?.data?.error || 'Login failed' };
     }
   };
@@ -43,10 +47,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await authApi.register(username, password);
       if (res.data.success && res.data.user) {
+        soundManager.playSuccess();
         return { success: true };
       }
+      soundManager.playError();
       return { success: false, error: res.data.error || 'Registration failed' };
     } catch (error: any) {
+      soundManager.playError();
       return { success: false, error: error.response?.data?.error || 'Registration failed' };
     }
   };
