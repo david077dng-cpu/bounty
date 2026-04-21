@@ -67,7 +67,7 @@ async function main() {
     console.log(`[${task.id}] Generating: ${task.name}...`);
 
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp-image-generation' });
       
       const result = await model.generateContent([prompt]);
       const response = result.response;
