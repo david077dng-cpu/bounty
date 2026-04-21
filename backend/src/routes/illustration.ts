@@ -1,6 +1,7 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -9,6 +10,17 @@ const prisma = new PrismaClient();
 const arkBaseUrl = () => process.env.VOLC_ARK_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3';
 const arkApiKey = () => process.env.VOLC_ARK_API_KEY;
 const arkModelId = () => process.env.VOLC_ARK_MODEL_ID || 'doubao-1.5-pro-256k';
+
+// Gemini config
+const svgProvider = () => process.env.SVG_LLM_PROVIDER || 'ark';
+const googleApiKey = () => process.env.GOOGLE_API_KEY;
+const geminiModelId = () => process.env.GEMINI_SVG_MODEL_ID || 'gemini-2.0-flash';
+
+// Initialize Gemini once
+const genAI = googleApiKey() ? new GoogleGenerativeAI(googleApiKey()!) : null;
+
+// SVG content security filter
+const DANGEROUS_SVG = /<script|on\w+\s*=|javascript:|<foreignObject|<animate/i;
 
 const inFlight = new Set<string>();
 
@@ -56,10 +68,14 @@ router.get('/tasks/:id/illustration', async (req, res) => {
       return res.json({ success: true, data: { svg: task.illustration } });
     }
 
-    // No ARK key configured
-    const apiKey = arkApiKey();
-    if (!apiKey) {
+    // Check if selected provider is configured
+    const provider = svgProvider();
+    if (provider === 'ark' && !arkApiKey()) {
       console.warn('[illustration] VOLC_ARK_API_KEY not set');
+      return res.json({ success: true, data: { svg: null } });
+    }
+    if (provider === 'gemini' && !googleApiKey()) {
+      console.warn('[illustration] GOOGLE_API_KEY not set');
       return res.json({ success: true, data: { svg: null } });
     }
 
@@ -69,50 +85,73 @@ router.get('/tasks/:id/illustration', async (req, res) => {
     }
     inFlight.add(id);
 
-    // Generate via ARK
+    // Generate via selected provider
     const systemPrompt = buildSystemPrompt(task.id);
     const userPrompt = `任务名：${task.name}\n类别：${task.category.name}\n描述：${task.question}`;
 
     let svgContent: string | null = null;
 
     try {
-      const response = await axios.post(
-        `${arkBaseUrl()}/chat/completions`,
-        {
-          model: arkModelId(),
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          stream: false,
-          max_tokens: 4096,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          timeout: 30000,
-          proxy: false,
+      if (provider === 'gemini' && genAI) {
+        // Generate via Gemini
+        const model = genAI.getGenerativeModel({ model: geminiModelId() });
+        const result = await model.generateContent([
+          { text: systemPrompt },
+          { text: userPrompt }
+        ]);
+        const response = await result.response;
+        const raw = response.text() || '';
+        const trimmed = raw.trim();
+
+        if (trimmed.toLowerCase().startsWith('<svg') && !DANGEROUS_SVG.test(trimmed)) {
+          svgContent = trimmed;
+          // Cache in DB
+          await prisma.task.update({
+            where: { id: task.id },
+            data: { illustration: svgContent },
+          });
+        } else {
+          console.warn(`[illustration] Non-SVG response from Gemini for task ${id}:`, trimmed.slice(0, 100));
         }
-      );
-
-      const raw: string = response.data?.choices?.[0]?.message?.content ?? '';
-      const trimmed = raw.trim();
-
-      const DANGEROUS_SVG = /<script|on\w+\s*=|javascript:|<foreignObject|<animate/i;
-      if (trimmed.toLowerCase().startsWith('<svg') && !DANGEROUS_SVG.test(trimmed)) {
-        svgContent = trimmed;
-        // Cache in DB
-        await prisma.task.update({
-          where: { id: task.id },
-          data: { illustration: svgContent },
-        });
       } else {
-        console.warn(`[illustration] Non-SVG response for task ${id}:`, trimmed.slice(0, 100));
+        // Generate via ARK
+        const response = await axios.post(
+          `${arkBaseUrl()}/chat/completions`,
+          {
+            model: arkModelId(),
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
+            ],
+            stream: false,
+            max_tokens: 4096,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${arkApiKey()}`,
+              'Content-Type': 'application/json',
+            },
+            timeout: 30000,
+            proxy: false,
+          }
+        );
+
+        const raw: string = response.data?.choices?.[0]?.message?.content ?? '';
+        const trimmed = raw.trim();
+
+        if (trimmed.toLowerCase().startsWith('<svg') && !DANGEROUS_SVG.test(trimmed)) {
+          svgContent = trimmed;
+          // Cache in DB
+          await prisma.task.update({
+            where: { id: task.id },
+            data: { illustration: svgContent },
+          });
+        } else {
+          console.warn(`[illustration] Non-SVG response for task ${id}:`, trimmed.slice(0, 100));
+        }
       }
     } catch (err: any) {
-      console.error(`[illustration] ARK call failed for task ${id}:`, err.message);
+      console.error(`[illustration] ${provider} call failed for task ${id}:`, err.message);
     } finally {
       inFlight.delete(id);
     }
