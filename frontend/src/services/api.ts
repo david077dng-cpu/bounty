@@ -247,11 +247,19 @@ export const illustrationApi = {
     api.get<{ success: boolean; data: { svg: string | null } }>(`/tasks/${taskId}/illustration`),
 };
 
-// Gemini Image API (PNG generation via Imagen)
+// Gemini Image API (PNG generation via Imagen) - deprecated, use taskImageApi
 export const geminiImageApi = {
   get: (taskId: string) =>
     api.get<{ success: boolean; data: { imageUrl: string; exists: boolean }; error?: string }>(
       `/tasks/${taskId}/gemini-image`
+    ),
+};
+
+// Task Image API (PNG generation via configured provider: Gemini or OpenAI)
+export const taskImageApi = {
+  get: (taskId: string) =>
+    api.get<{ success: boolean; data: { imageUrl: string; exists: boolean }; error?: string }>(
+      `/tasks/${taskId}/image`
     ),
 };
 
@@ -284,6 +292,49 @@ export const interactionApi = {
     api.post<{ success: boolean; sessionId: string; roundNumber: number; systemResponse: string }>(
       `/interaction/reset/${taskId}`
     ),
+};
+
+// Qipashuo Debate Arena API
+export interface DebateHistoryItem {
+  id: number;
+  topic: string;
+  speakerCount: number;
+  createdAt: string;
+}
+
+export interface DebateDetail extends DebateHistoryItem {
+  fullContent: Array<{ speakerKey: string; text: string }>;
+}
+
+export const qipashuoApi = {
+  call: (systemPrompt: string, task: string, max_tokens = 1000) =>
+    api.post<{ success: boolean; text: string; error?: string }>('/qipashuo/debate', {
+      systemPrompt,
+      task,
+      max_tokens,
+    }),
+
+  save: (topic: string, fullContent: Array<{ speakerKey: string; text: string }>) =>
+    api.post<{ success: boolean; id: number; message: string; error?: string }>('/qipashuo/save', {
+      topic,
+      fullContent,
+    }),
+
+  getHistory: (page = 1, limit = 20) =>
+    api.get<{
+      success: boolean;
+      debates: DebateHistoryItem[];
+      total: number;
+      page: number;
+      totalPages: number;
+      error?: string;
+    }>('/qipashuo/history', { params: { page, limit } }),
+
+  getDetail: (id: number) =>
+    api.get<{ success: boolean; debate: DebateDetail; error?: string }>(`/qipashuo/${id}`),
+
+  delete: (id: number) =>
+    api.delete<{ success: boolean; message: string; error?: string }>(`/qipashuo/${id}`),
 };
 
 export default api;

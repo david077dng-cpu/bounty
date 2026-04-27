@@ -103,6 +103,11 @@ temp/
 .worktrees/
 worktrees/
 
+# Illustrations and intermediate source files
+backend/svgs/
+backend/illustrations/
+frontend/public/images/tasks/
+
 # Lock files (uncomment if you don't want to commit them)
 # package-lock.json
 # yarn.lock

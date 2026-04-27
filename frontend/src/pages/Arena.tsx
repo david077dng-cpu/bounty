@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { tasksApi, submissionsApi, mcpApi, arkApi } from '../services/api';
-import type { Task, Scores, MCPConnection, MCPTool, SlashCommand } from '../types';
+import type { Task, Scores, MCPConnection, MCPTool, SlashCommand, TaskListItem } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import SlashCommandPopup from '../components/SlashCommandPopup';
 import PrisonerDilemmaSimulation from '../components/PrisonerDilemmaSimulation';
@@ -10,6 +10,7 @@ import ProgressivePuzzle from '../components/ProgressivePuzzle';
 import StructuredQuiz from '../components/StructuredQuiz';
 import SocialPanel from '../components/SocialPanel';
 import IllustrationPanel from '../components/IllustrationPanel';
+import AgentDebatePanel from '../components/AgentDebatePanel';
 import { slashCommandRegistry } from '../utils/slashCommandRegistry';
 import '../styles/Arena.css';
 
@@ -27,6 +28,8 @@ const Arena: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState('');
   const [error, setError] = useState('');
+  // All tasks for navigation
+  const [allTasks, setAllTasks] = useState<TaskListItem[]>([]);
   // MCP state
   const [mcpConnections, setMcpConnections] = useState<MCPConnection[]>([]);
   const [selectedMcpId, setSelectedMcpId] = useState<number | null>(null);
@@ -279,8 +282,20 @@ const Arena: React.FC = () => {
   useEffect(() => {
     if (taskId) {
       loadTask(taskId);
+      loadAllTasks();
     }
   }, [taskId]);
+
+  const loadAllTasks = async () => {
+    try {
+      const res = await tasksApi.list();
+      if (res.data.success) {
+        setAllTasks(res.data.tasks);
+      }
+    } catch (error) {
+      console.error('Failed to load all tasks for navigation:', error);
+    }
+  };
 
   const loadTask = async (id: string) => {
     setLoading(true);
@@ -604,6 +619,11 @@ const Arena: React.FC = () => {
     return <div className="error-text">{error || 'Task not found'}</div>;
   }
 
+  // Find current index for navigation
+  const currentIndex = allTasks.findIndex(t => t.id === taskId);
+  const prevTask = currentIndex > 0 ? allTasks[currentIndex - 1] : null;
+  const nextTask = currentIndex < allTasks.length - 1 ? allTasks[currentIndex + 1] : null;
+
   const scoreNames = {
     accuracy: '🎯 答案准确性',
     reasoning: '🔗 推理逻辑',
@@ -644,7 +664,8 @@ const Arena: React.FC = () => {
           {task.hint && <div className="q-hint">✨ 灵感火花：{task.hint}</div>}
         </div>
 
-        <IllustrationPanel taskId={task.id} />
+        {!task.isInteractive && <IllustrationPanel taskId={task.id} />}
+        <AgentDebatePanel taskId={task.id} />
 
         {/* Interactive components based on type */}
         {task.isInteractive && task.interactionType === 'dialogue' && (
@@ -955,6 +976,38 @@ const Arena: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* Task Navigation */}
+        <div className="task-navigation">
+          <button
+            className="nav-btn prev-btn"
+            onClick={() => prevTask && navigate(`/arena/${prevTask.id}`)}
+            disabled={!prevTask}
+          >
+            <span className="nav-arrow">←</span>
+            <span className="nav-text">
+              <span className="nav-label">上一个</span>
+              <span className="nav-name">{prevTask?.name}</span>
+            </span>
+          </button>
+          <button
+            className="nav-btn list-btn"
+            onClick={() => navigate('/')}
+          >
+            <span className="nav-text">列表</span>
+          </button>
+          <button
+            className="nav-btn next-btn"
+            onClick={() => nextTask && navigate(`/arena/${nextTask.id}`)}
+            disabled={!nextTask}
+          >
+            <span className="nav-text">
+              <span className="nav-label">下一个</span>
+              <span className="nav-name">{nextTask?.name}</span>
+            </span>
+            <span className="nav-arrow">→</span>
+          </button>
+        </div>
       </div>
       <SocialPanel taskId={task.id} taskAuthorId={task.authorId} />
     </div>

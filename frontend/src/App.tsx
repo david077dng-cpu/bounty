@@ -13,6 +13,7 @@ import CreationCenter from './pages/CreationCenter';
 import MCPConnections from './pages/MCPConnections';
 import Chess from './pages/Chess';
 import AgentDocs from './pages/AgentDocs';
+import Qipashuo from './pages/Qipashuo';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="/mcp-connections" element={<MCPConnections />} />
           <Route path="/chess" element={<Chess />} />
           <Route path="/docs" element={<AgentDocs />} />
+          <Route path="/qipashuo" element={<Qipashuo />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>

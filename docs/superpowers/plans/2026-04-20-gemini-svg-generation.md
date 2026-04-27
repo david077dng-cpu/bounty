@@ -27,7 +27,7 @@ Append these lines at the end of `backend/.env`:
 # SVG_LLM_PROVIDER can be "ark" (default) or "gemini"
 SVG_LLM_PROVIDER=gemini
 # GOOGLE_API_KEY is already used for Gemini PNG image generation
-GOOGLE_API_KEY=AIzaSyDrp3jT96AxsecCEYRsrBQ4Jm07CeWEgkM
+GOOGLE_API_KEY=xx
 # Gemini model for SVG text generation
 GEMINI_SVG_MODEL_ID=gemini-2.0-flash
 ```

@@ -22,6 +22,8 @@ import socialRoutes from './routes/social';
 import illustrationRoutes from './routes/illustration';
 import interactionRoutes from './routes/interaction';
 import geminiImageRoutes from './routes/geminiImage';
+import taskImageRoutes from './routes/taskImage';
+import qipashuoRoutes from './routes/qipashuo';
 import { initWebSocket } from './websocket';
 
 const app = express();
@@ -52,6 +54,8 @@ app.use('/api/chess', chessRoutes);
 app.use('/api/social', socialRoutes);
 app.use('/api', illustrationRoutes);
 app.use('/api', geminiImageRoutes);
+app.use('/api', taskImageRoutes);
+app.use('/api/qipashuo', qipashuoRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

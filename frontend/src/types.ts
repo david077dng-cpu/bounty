@@ -26,6 +26,7 @@ export interface TaskListItem {
   authorId: number | null;
   likeCount: number;
   commentCount: number;
+  isInteractive: boolean;
 }
 
 export interface Task {

@@ -69,7 +69,16 @@ const StructuredQuiz: React.FC<StructuredQuizProps> = ({
       setSessionId(sid);
 
       // Parse and process configuration
-      const parsedConfig: StructuredConfig = task.interactionConfig;
+      // Handle both parsed object and string (defensive)
+      if (!task.interactionConfig) {
+        throw new Error('Missing quiz configuration');
+      }
+      let parsedConfig: StructuredConfig;
+      if (typeof task.interactionConfig === 'string') {
+        parsedConfig = JSON.parse(task.interactionConfig);
+      } else {
+        parsedConfig = task.interactionConfig as StructuredConfig;
+      }
       setConfig(parsedConfig);
 
       // Process questions with randomization
@@ -115,7 +124,9 @@ const StructuredQuiz: React.FC<StructuredQuizProps> = ({
       setLoading(false);
     } catch (err) {
       console.error('Failed to initialize structured quiz:', err);
-      setError('Failed to initialize quiz');
+      console.error('task.interactionConfig type:', typeof task.interactionConfig);
+      console.error('task.interactionConfig:', task.interactionConfig);
+      setError('Failed to initialize quiz: ' + String(err));
       setLoading(false);
     }
   };
@@ -364,35 +375,73 @@ const StructuredQuiz: React.FC<StructuredQuizProps> = ({
 
   const renderFillBlank = (question: FillBlankQuestion) => {
     const userInputs = getCurrentAnswer(question.id) as Record<string, string> || {};
-    // Parse the question text and split into segments around placeholders __number__
+    // Parse the question text and split into segments around placeholders
+    // Supported formats:
+    // - Explicit id: ____1____, __2__ (matches id from blanks array)
+    // - Just blanks: ____ automatically assigned in order to blanks array
     const parts: Array<{ type: 'text', content: string } | { type: 'blank', blank: FillBlank }> = [];
 
     let text = question.question;
-    const placeholderRegex = /__([a-zA-Z0-9]+)__/g;
+    // First, match explicit placeholders with id: ____id____ or __id__
+    // If no explicit ids found, fall back to matching any ____ runs
+    const explicitRegex = /_{2,}([a-zA-Z0-9]+)_{2,}/g;
+    const implicitRegex = /_{4,}/g; // 4+ underscores = a blank
     let lastIndex = 0;
     let match: RegExpExecArray | null;
+    let implicitBlankIndex = 0;
 
-    while ((match = placeholderRegex.exec(text)) !== null) {
-      // Add text before placeholder
-      if (match.index > lastIndex) {
-        parts.push({
-          type: 'text',
-          content: text.slice(lastIndex, match.index),
-        });
+    // Check if there are any explicit matches first
+    const hasExplicitMatches = text.match(explicitRegex);
+
+    if (hasExplicitMatches) {
+      // Use explicit matching (with ids)
+      explicitRegex.lastIndex = 0;
+      while ((match = explicitRegex.exec(text)) !== null) {
+        // Add text before placeholder
+        if (match.index > lastIndex) {
+          parts.push({
+            type: 'text',
+            content: text.slice(lastIndex, match.index),
+          });
+        }
+        // Find the blank by id
+        const blankId = match[1];
+        const blank = question.blanks.find(b => b.id === blankId);
+        if (blank) {
+          parts.push({
+            type: 'blank',
+            blank,
+          });
+        } else {
+          // If blank not found, just add the placeholder as text
+          parts.push({ type: 'text', content: match[0] });
+        }
+        lastIndex = match.index + match[0].length;
       }
-      // Find the blank by id
-      const blankId = match[1];
-      const blank = question.blanks.find(b => b.id === blankId);
-      if (blank) {
-        parts.push({
-          type: 'blank',
-          blank,
-        });
-      } else {
-        // If blank not found, just add the placeholder as text
-        parts.push({ type: 'text', content: match[0] });
+    } else {
+      // Implicit matching - any run of 4+ underscores is a blank, match in order to blanks array
+      while ((match = implicitRegex.exec(text)) !== null) {
+        // Add text before placeholder
+        if (match.index > lastIndex) {
+          parts.push({
+            type: 'text',
+            content: text.slice(lastIndex, match.index),
+          });
+        }
+        // Get the blank by position
+        const blank = question.blanks[implicitBlankIndex];
+        if (blank) {
+          parts.push({
+            type: 'blank',
+            blank,
+          });
+          implicitBlankIndex++;
+        } else {
+          // If no more blanks in array, add as text
+          parts.push({ type: 'text', content: match[0] });
+        }
+        lastIndex = match.index + match[0].length;
       }
-      lastIndex = match.index + match[0].length;
     }
 
     // Add remaining text
@@ -449,7 +498,7 @@ const StructuredQuiz: React.FC<StructuredQuizProps> = ({
     return (
       <div key={question.id} className={cardClasses}>
         <div className="question-header">
-          <div className="question-text">{question.question}</div>
+          {question.type !== 'fill' && <div className="question-text">{question.question}</div>}
           <div className="question-points">{question.points} 分</div>
         </div>
 
@@ -481,81 +530,96 @@ const StructuredQuiz: React.FC<StructuredQuizProps> = ({
   const handleSubmit = async () => {
     if (!gameState || !sessionId || submitted) return;
 
-    // Calculate final score
-    const totalScore = calculateTotalScore();
-    const totalPossible = gameState.totalPossible;
+    try {
+      // Calculate final score
+      const totalScore = calculateTotalScore();
+      const totalPossible = gameState.totalPossible;
 
-    const finalState: StructuredGameState = {
-      ...gameState,
-      score: totalScore,
-      completed: true,
-    };
-
-    setGameState(finalState);
-    setSubmitted(true);
-
-    // Save final state
-    await interactionApi.step(task.id, sessionId, '[Submitted]', finalState);
-
-    // Compile full answer text for submission
-    const percent = totalPossible > 0 ? (totalScore / totalPossible) * 100 : 0;
-    const passThreshold = config?.passThreshold || 60;
-    const passed = percent >= passThreshold;
-
-    let fullAnswer = `# ${config?.title}\n\n${config?.description}\n\n`;
-    fullAnswer += `## 测验结果\n\n得分: ${totalScore.toFixed(1)} / ${totalPossible} (${percent.toFixed(1)}%)\n`;
-    fullAnswer += `结果: ${passed ? '✅ 通过' : '❌ 未通过'}\n\n`;
-    fullAnswer += `## 答题详情\n\n`;
-
-    processedQuestions.forEach((q, i) => {
-      const userAnswer = getCurrentAnswer(q.id);
-      const score = calculateQuestionScore(q, userAnswer);
-      fullAnswer += `### ${i + 1}. ${q.question}\n`;
-      fullAnswer += `- 得分: ${score.toFixed(1)} / ${q.points}\n`;
-
-      if (q.type === 'single') {
-        const selected = userAnswer as string;
-        const option = q.options.find(o => o.id === selected);
-        fullAnswer += `- 你的选择: ${option?.text || '未选择'}\n`;
-      } else if (q.type === 'multiple') {
-        const selected = userAnswer as string[] || [];
-        const texts = selected.map(id => q.options.find(o => o.id === id)?.text).filter(Boolean);
-        fullAnswer += `- 你的选择: ${texts.join(', ')}\n`;
-      } else if (q.type === 'fill') {
-        const inputs = userAnswer as Record<string, string> || {};
-        q.blanks.forEach(blank => {
-          fullAnswer += `- ${blank.id}: ${inputs[blank.id] || '(空白)'}\n`;
-        });
-      }
-      fullAnswer += '\n';
-    });
-
-    // Finish and get scored submission
-    const finishRes = await interactionApi.finish(task.id, sessionId);
-    if (finishRes.data.success) {
-      _onComplete(finishRes.data.fullAnswer, finishRes.data.submission.scores);
-    } else {
-      // Fallback: calculate scores based on our percentage
-      const percentScore = percent;
-      const finalScores = {
-        accuracy: Math.min(100, Math.max(30, percentScore + Math.floor(Math.random() * 20) - 10)),
-        reasoning: Math.min(100, Math.max(30, percentScore + Math.floor(Math.random() * 20) - 10)),
-        creativity: Math.min(100, Math.max(30, 50 + Math.floor(Math.random() * 20))),
-        speed: Math.min(100, Math.max(30, 50 + Math.floor(Math.random() * 20))),
+      const finalState: StructuredGameState = {
+        ...gameState,
+        score: totalScore,
+        completed: true,
       };
-      _onComplete(fullAnswer, finalScores);
+
+      setGameState(finalState);
+      setSubmitted(true);
+
+      // Save final state
+      await interactionApi.step(task.id, sessionId, '[Submitted]', finalState);
+
+      // Compile full answer text for submission
+      const percent = totalPossible > 0 ? (totalScore / totalPossible) * 100 : 0;
+      const passThreshold = config?.passThreshold || 60;
+      const passed = percent >= passThreshold;
+
+      let fullAnswer = `# ${config?.title}\n\n${config?.description}\n\n`;
+      fullAnswer += `## 测验结果\n\n得分: ${totalScore.toFixed(1)} / ${totalPossible} (${percent.toFixed(1)}%)\n`;
+      fullAnswer += `结果: ${passed ? '✅ 通过' : '❌ 未通过'}\n\n`;
+      fullAnswer += `## 答题详情\n\n`;
+
+      processedQuestions.forEach((q, i) => {
+        const userAnswer = getCurrentAnswer(q.id);
+        const score = calculateQuestionScore(q, userAnswer);
+        fullAnswer += `### ${i + 1}. ${q.question}\n`;
+        fullAnswer += `- 得分: ${score.toFixed(1)} / ${q.points}\n`;
+
+        if (q.type === 'single') {
+          const selected = userAnswer as string;
+          const option = q.options.find(o => o.id === selected);
+          fullAnswer += `- 你的选择: ${option?.text || '未选择'}\n`;
+        } else if (q.type === 'multiple') {
+          const selected = userAnswer as string[] || [];
+          const texts = selected.map(id => q.options.find(o => o.id === id)?.text).filter(Boolean);
+          fullAnswer += `- 你的选择: ${texts.join(', ')}\n`;
+        } else if (q.type === 'fill') {
+          const inputs = userAnswer as Record<string, string> || {};
+          q.blanks.forEach(blank => {
+            fullAnswer += `- ${blank.id}: ${inputs[blank.id] || '(空白)'}\n`;
+          });
+        }
+        fullAnswer += '\n';
+      });
+
+      // Finish and get scored submission
+      const finishRes = await interactionApi.finish(task.id, sessionId);
+      if (finishRes.data.success) {
+        _onComplete(finishRes.data.fullAnswer, finishRes.data.submission.scores);
+      } else {
+        // Fallback: calculate scores based on our percentage
+        const percentScore = percent;
+        const finalScores = {
+          accuracy: Math.min(100, Math.max(30, percentScore + Math.floor(Math.random() * 20) - 10)),
+          reasoning: Math.min(100, Math.max(30, percentScore + Math.floor(Math.random() * 20) - 10)),
+          creativity: Math.min(100, Math.max(30, 50 + Math.floor(Math.random() * 20))),
+          speed: Math.min(100, Math.max(30, 50 + Math.floor(Math.random() * 20))),
+        };
+        _onComplete(fullAnswer, finalScores);
+      }
+    } catch (err) {
+      console.error('Submit error:', err);
+      setError('提交失败，请重试。');
+      // Revert state on failure
+      setGameState(prev => prev ? { ...prev, completed: false } : prev);
+      setSubmitted(false);
     }
   };
 
   const handleReset = async () => {
-    // Start new session
-    const resetRes = await interactionApi.reset(task.id);
-    if (resetRes.data.success) {
-      setSessionId(resetRes.data.sessionId);
-      // Re-initialize with new randomization
-      initializeQuiz();
-      setSubmitted(false);
-      setError('');
+    try {
+      // Start new session
+      const resetRes = await interactionApi.reset(task.id);
+      if (resetRes.data.success) {
+        setSessionId(resetRes.data.sessionId);
+        // Re-initialize with new randomization
+        initializeQuiz();
+        setSubmitted(false);
+        setError('');
+      } else {
+        throw new Error('Reset failed');
+      }
+    } catch (err) {
+      console.error('Reset error:', err);
+      setError('重置失败，请重试。');
     }
   };
 

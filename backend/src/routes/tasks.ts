@@ -75,6 +75,7 @@ router.get('/', async (req, res) => {
         authorId: t.authorId,
         likeCount: likeMap.get(t.id) ?? 0,
         commentCount: commentMap.get(t.id) ?? 0,
+        isInteractive: t.isInteractive,
       })),
       categories: categories.map(c => ({ id: c.id, name: c.name, icon: c.icon })),
     });

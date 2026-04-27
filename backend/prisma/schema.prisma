@@ -33,6 +33,7 @@ model User {
   likes         Like[]
   comments      Comment[]
   interactionRounds InteractionRound[]
+  debateHistory DebateHistory[]
 }
 
 model Category {
@@ -192,4 +193,15 @@ model MCPConnection {
   apiKey      String?  // optional API key
   createdAt   DateTime @default(now())
   lastUsed    DateTime @updatedAt
+}
+
+// Qipashuo - Store completed debate history
+model DebateHistory {
+  id          Int      @id @default(autoincrement())
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic       String   // The debate topic
+  fullContent String   // Full JSON of the complete debate (all speeches)
+  speakerCount Int      // Number of speakers (usually 19 steps)
+  createdAt   DateTime @default(now())
 }

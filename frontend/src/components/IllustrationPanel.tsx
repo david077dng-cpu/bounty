@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { illustrationApi, geminiImageApi } from '../services/api';
+import { illustrationApi, taskImageApi } from '../services/api';
 import '../styles/IllustrationPanel.css';
 
 interface IllustrationPanelProps {
@@ -15,12 +15,14 @@ const IllustrationPanel: React.FC<IllustrationPanelProps> = ({ taskId, thumbnail
   useEffect(() => {
     let cancelled = false;
 
-    // Try Gemini PNG image first
+    // Try PNG image first
     const loadPng = async () => {
       try {
-        const res = await geminiImageApi.get(taskId);
+        const res = await taskImageApi.get(taskId);
         if (!cancelled && res.data.success && res.data.data.imageUrl) {
-          setPngUrl(`http://localhost:3001${res.data.data.imageUrl}`);
+          // Image is in frontend/public, just use the path directly — it's served by Vite in dev
+          // and by static serving in production. Don't hardcode backend origin.
+          setPngUrl(res.data.data.imageUrl);
           setSvg(null);
         } else {
           // Fallback to SVG
